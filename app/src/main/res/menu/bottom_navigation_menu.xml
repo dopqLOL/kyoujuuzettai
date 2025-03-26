@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navigation_home"
+        android:icon="@drawable/ic_home"
+        android:title="ホーム" />
+    <item
+        android:id="@+id/navigation_bookmark"
+        android:icon="@drawable/ic_bookmark"
+        android:title="ブックマーク" />
+    <item
+        android:id="@+id/navigation_history"
+        android:icon="@drawable/ic_history"
+        android:title="学習履歴" />
+    <item
+        android:id="@+id/navigation_glossary"
+        android:icon="@drawable/ic_book"
+        android:title="用語集" />
+</menu> 
