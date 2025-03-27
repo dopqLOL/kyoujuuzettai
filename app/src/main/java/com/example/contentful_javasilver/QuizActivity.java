@@ -4,6 +4,8 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -11,22 +13,26 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.contentful.java.cda.CDAEntry;
 import com.example.contentful_javasilver.databinding.ActivityMainBinding;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+import kotlin.Unit;
+
+public class QuizActivity extends AppCompatActivity implements View.OnClickListener {
 
     private ActivityMainBinding binding;
     private String rightAnswer;
     private int rightAnswerCount;
     private int quizCount = 1;
     private static final int QUIZ_COUNT = 5;
-
     private static final String ACCESS_TOKEN = BuildConfig.CONTENTFUL_API_KEY;
     private static final String SPACE_ID = BuildConfig.CONTENTFUL_SPACE_ID;
+    private TextView codeBlock1;
+    String code1;
 
     private ArrayList<ArrayList<String>> quizArray = new ArrayList<>();
     private String[][] quizData = {
@@ -49,6 +55,44 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         EdgeToEdge.enable(this);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        // TextViewの参照を取得
+        codeBlock1 = findViewById(R.id.codeBlock);
+
+        // Contentful APIクライアントを初期化
+        ContentfulGetApi contentfulgetapi = new ContentfulGetApi(SPACE_ID, ACCESS_TOKEN);
+        AsyncHelperCoroutines asyncHelper = new AsyncHelperCoroutines(contentfulgetapi);
+
+        // Contentfulからデータを取得（エラーハンドリング付き）
+        asyncHelper.fetchEntriesAsync("javaSilverQ", 
+            entries -> {
+                runOnUiThread(() -> {
+                    for (CDAEntry entry : entries) {
+                        String qid = entry.getField("qid");
+                        // qidが"1-50"のエントリーを探す
+                        if ("1-50".equals(qid)) {
+                            // codeフィールドを取得
+                            code1 = entry.getField("code");
+                            // TextViewに表示
+                            codeBlock1.setText(code1);
+                            break;
+                        }
+                    }
+                });
+                return Unit.INSTANCE;
+            },
+            errorMessage -> {
+                // エラー時の処理
+                runOnUiThread(() -> {
+                    // エラーメッセージを表示
+                    Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show();
+                    // エラー時は空のテキストを表示
+                    codeBlock1.setText("");
+                });
+                return Unit.INSTANCE;
+            }
+        );
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -145,5 +189,4 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 }
-
 
