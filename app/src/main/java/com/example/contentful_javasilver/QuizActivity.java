@@ -19,35 +19,22 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import kotlin.Unit;
 
 public class QuizActivity extends AppCompatActivity implements View.OnClickListener {
 
     private ActivityMainBinding binding;
-    private String rightAnswer;
+    private List<Integer> rightAnswers;
     private int rightAnswerCount;
     private int quizCount = 1;
     private static final int QUIZ_COUNT = 5;
     private static final String ACCESS_TOKEN = BuildConfig.CONTENTFUL_ACCESS_TOKEN;
     private static final String SPACE_ID = BuildConfig.CONTENTFUL_SPACE_ID;
     private TextView codeBlock1;
-    String code1;
-
-    private ArrayList<ArrayList<String>> quizArray = new ArrayList<>();
-    private String[][] quizData = {
-            // {"都道府県名", "正解", "選択肢１", "選択肢２", "選択肢３"}
-            {"北海道", "札幌市", "長崎市", "福島市", "前橋市"},
-            {"青森県", "青森市", "広島市", "甲府市", "岡山市"},
-            {"岩手県", "盛岡市","大分市", "秋田市", "福岡市"},
-            {"宮城県", "仙台市", "水戸市", "岐阜市", "福井市"},
-            {"秋田県", "秋田市","横浜市", "鳥取市", "仙台市"},
-            {"山形県", "山形市","青森市", "山口市", "奈良市"},
-            {"福島県", "福島市", "盛岡市", "新宿区", "京都市"},
-            {"茨城県", "水戸市", "金沢市", "名古屋市", "奈良市"},
-            {"栃木県", "宇都宮市", "札幌市", "岡山市", "奈良市"},
-            {"群馬県", "前橋市", "福岡市", "松江市", "福井市"},
-    };
+    private ArrayList<CDAEntry> quizEntries = new ArrayList<>();
+    private int currentQuizIndex = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,27 +54,15 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
         asyncHelper.fetchEntriesAsync("javaSilverQ",
             entries -> {
                 runOnUiThread(() -> {
-                    for (CDAEntry entry : entries) {
-                        String qid = entry.getField("qid");
-                        // qidが"1-50"のエントリーを探す
-                        if ("1-50".equals(qid)) {
-                            // codeフィールドを取得
-                            code1 = entry.getField("code");
-                            // TextViewに表示
-                            codeBlock1.setText(code1);
-                            break;
-                        }
-                    }
+                    quizEntries.addAll(entries);
+                    Collections.shuffle(quizEntries);
+                    showNextQuiz();
                 });
                 return Unit.INSTANCE;
             },
             errorMessage -> {
-                // エラー時の処理
                 runOnUiThread(() -> {
-                    // エラーメッセージを表示
                     Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show();
-                    // エラー時は空のテキストを表示
-                    codeBlock1.setText("");
                 });
                 return Unit.INSTANCE;
             }
@@ -103,90 +78,95 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
         binding.answerBtn2.setOnClickListener(this);
         binding.answerBtn3.setOnClickListener(this);
         binding.answerBtn4.setOnClickListener(this);
-
-        // quizDataからクイズ出題用のquizArrayを作成する
-        for (String[] quizDatum : quizData) {
-
-            // 新しいArrayListを準備
-            ArrayList<String> tmpArray = new ArrayList<>();
-
-            // クイズデータを追加
-            tmpArray.add(quizDatum[0]);  // 都道府県名
-            tmpArray.add(quizDatum[1]);  // 正解
-            tmpArray.add(quizDatum[2]);  // 選択肢１
-            tmpArray.add(quizDatum[3]);  // 選択肢２
-            tmpArray.add(quizDatum[4]);  // 選択肢３
-
-            // tmpArrayをquizArrayに追加する
-            quizArray.add(tmpArray);
-        }
-
-        Collections.shuffle(quizArray);
-
-        showNextQuiz();
     }
 
     private void showNextQuiz() {
+        if (currentQuizIndex >= quizEntries.size()) {
+            // クイズが終了した場合の処理
+            showResult();
+            return;
+        }
+
         // クイズカウントラベルを更新
         binding.countLabel.setText(getString(R.string.count_label, quizCount));
 
-        // quizArrayからクイズを１つ取り出す
-        ArrayList<String> quiz = quizArray.get(0);
+        CDAEntry currentQuiz = quizEntries.get(currentQuizIndex);
+        
+        // 問題文を表示
+        binding.questionLabel.setText(currentQuiz.getField("questionText"));
+        
+        // コードブロックの表示
+        String code = currentQuiz.getField("code");
+        if (code != null && !code.isEmpty()) {
+            codeBlock1.setText(code);
+            codeBlock1.setVisibility(View.VISIBLE);
+        } else {
+            codeBlock1.setVisibility(View.GONE);
+        }
 
-        // 問題文（都道府県名）を表示
-        binding.questionLabel.setText(quiz.get(0));
+        // 選択肢を取得
+        List<String> choices = currentQuiz.getField("choices");
+        List<Double> rawAnswers = currentQuiz.getField("answer");
+        rightAnswers = new ArrayList<>();
+        for (Double answer : rawAnswers) {
+            rightAnswers.add(answer.intValue());
+        }
 
-        // 正解をrightAnswerにセット
-        rightAnswer = quiz.get(1);
+        // 正解のインデックスをログ出力
+        android.util.Log.d("QuizActivity", "正解のインデックス: " + rightAnswers.toString());
 
-        // クイズ配列から問題文（都道府県名）を削除
-        quiz.remove(0);
+        // 解答ボタンに選択肢を表示
+        binding.answerBtn1.setText(choices.get(0));
+        binding.answerBtn2.setText(choices.get(1));
+        binding.answerBtn3.setText(choices.get(2));
+        binding.answerBtn4.setText(choices.get(3));
+    }
 
-        // 正解と選択肢３つをシャッフル
-        Collections.shuffle(quiz);
-
-        // 解答ボタンに正解と選択肢３つを表示
-        binding.answerBtn1.setText(quiz.get(0));
-        binding.answerBtn2.setText(quiz.get(1));
-        binding.answerBtn3.setText(quiz.get(2));
-        binding.answerBtn4.setText(quiz.get(3));
-
-        // このクイズをquizArrayから削除
-        quizArray.remove(0);
+    private void showResult() {
+        String resultMessage = String.format("クイズ終了！\n正解数: %d/%d", rightAnswerCount, QUIZ_COUNT);
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("結果")
+                .setMessage(resultMessage)
+                .setPositiveButton("OK", (dialogInterface, i) -> finish())
+                .setCancelable(false)
+                .show();
     }
 
     @Override
     public void onClick(View view) {
-        // どの解答ボタンが押されたか
         Button answerBtn = findViewById(view.getId());
         String btnText = answerBtn.getText().toString();
-
+        
+        CDAEntry currentQuiz = quizEntries.get(currentQuizIndex);
+        List<String> choices = currentQuiz.getField("choices");
+        
+        // 選択されたボタンのインデックスを取得
+        int selectedIndex = choices.indexOf(btnText);
+        
         String alertTitle;
-        if (btnText.equals(rightAnswer)) {
+        String explanation = currentQuiz.getField("explanation");
+        
+        if (rightAnswers.contains(selectedIndex)) {
             alertTitle = "正解!";
             rightAnswerCount++;
         } else {
             alertTitle = "不正解...";
         }
 
-        // ダイアログを作成
         new MaterialAlertDialogBuilder(this)
                 .setTitle(alertTitle)
-                .setMessage("答え : " + rightAnswer)
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        if (quizCount == QUIZ_COUNT) {
-                            // 結果画面へ移動
-                        } else {
-                            quizCount++;
-                            showNextQuiz();
-                        }
+                .setMessage("解説: " + explanation)
+                .setPositiveButton("OK", (dialogInterface, i) -> {
+                    if (quizCount == QUIZ_COUNT) {
+                        showResult();
+                    } else {
+                        quizCount++;
+                        currentQuizIndex++;
+                        showNextQuiz();
                     }
                 })
                 .setCancelable(false)
                 .show();
     }
-
 }
 
