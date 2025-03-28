@@ -1,0 +1,94 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 3,
+    "identityHash": "385142fb8e3eeb43c0cad167e5b124d3",
+    "entities": [
+      {
+        "tableName": "quizzes",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`qid` TEXT NOT NULL, `chapter` TEXT, `category` TEXT, `questionCategory` TEXT, `difficulty` TEXT, `code` TEXT, `questionText` TEXT, `choices` TEXT, `answer` TEXT, `explanation` TEXT, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`qid`))",
+        "fields": [
+          {
+            "fieldPath": "qid",
+            "columnName": "qid",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "chapter",
+            "columnName": "chapter",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "category",
+            "columnName": "category",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "questionCategory",
+            "columnName": "questionCategory",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "difficulty",
+            "columnName": "difficulty",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "code",
+            "columnName": "code",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "questionText",
+            "columnName": "questionText",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "choices",
+            "columnName": "choices",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "answer",
+            "columnName": "answer",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "explanation",
+            "columnName": "explanation",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "qid"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '385142fb8e3eeb43c0cad167e5b124d3')"
+    ]
+  }
+}
