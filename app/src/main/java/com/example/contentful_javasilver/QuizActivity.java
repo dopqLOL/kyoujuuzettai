@@ -29,7 +29,7 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
     private int rightAnswerCount;
     private int quizCount = 1;
     private static final int QUIZ_COUNT = 5;
-    private static final String ACCESS_TOKEN = BuildConfig.CONTENTFUL_API_KEY;
+    private static final String ACCESS_TOKEN = BuildConfig.CONTENTFUL_ACCESS_TOKEN;
     private static final String SPACE_ID = BuildConfig.CONTENTFUL_SPACE_ID;
     private TextView codeBlock1;
     String code1;
@@ -57,14 +57,14 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(binding.getRoot());
 
         // TextViewの参照を取得
-        codeBlock1 = findViewById(R.id.codeBlock);
+        codeBlock1 = binding.codeBlock;
 
         // Contentful APIクライアントを初期化
         ContentfulGetApi contentfulgetapi = new ContentfulGetApi(SPACE_ID, ACCESS_TOKEN);
         AsyncHelperCoroutines asyncHelper = new AsyncHelperCoroutines(contentfulgetapi);
 
         // Contentfulからデータを取得（エラーハンドリング付き）
-        asyncHelper.fetchEntriesAsync("javaSilverQ", 
+        asyncHelper.fetchEntriesAsync("javaSilverQ",
             entries -> {
                 runOnUiThread(() -> {
                     for (CDAEntry entry : entries) {

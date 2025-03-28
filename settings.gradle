@@ -1,0 +1,37 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+    versionCatalogs {
+        libs {
+            version('room', '2.6.1')
+            version('appcompat', '1.7.0')
+            version('material', '1.12.0')
+            version('constraintlayout', '2.2.1')
+            version('junit-ext', '1.1.5')
+            version('espresso', '3.6.1')
+            
+            library('room-runtime', 'androidx.room', 'room-runtime').versionRef('room')
+            library('room-compiler', 'androidx.room', 'room-compiler').versionRef('room')
+            library('room-ktx', 'androidx.room', 'room-ktx').versionRef('room')
+            library('appcompat', 'androidx.appcompat', 'appcompat').versionRef('appcompat')
+            library('material', 'com.google.android.material', 'material').versionRef('material')
+            library('constraintlayout', 'androidx.constraintlayout', 'constraintlayout').versionRef('constraintlayout')
+            library('junit-ext', 'androidx.test.ext', 'junit').versionRef('junit-ext')
+            library('espresso-core', 'androidx.test.espresso', 'espresso-core').versionRef('espresso')
+        }
+    }
+}
+
+rootProject.name = "ContentfulJavasilver"
+include ':app' 

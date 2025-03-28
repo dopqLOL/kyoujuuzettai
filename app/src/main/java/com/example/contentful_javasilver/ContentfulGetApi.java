@@ -6,7 +6,7 @@ import com.contentful.java.cda.CDAEntry;
 
 
 public class ContentfulGetApi {
-    private static final String ACCESS_TOKEN = BuildConfig.CONTENTFUL_API_KEY;
+    private static final String ACCESS_TOKEN = BuildConfig.CONTENTFUL_ACCESS_TOKEN;
     private static final String SPACE_ID = BuildConfig.CONTENTFUL_SPACE_ID;
     private CDAClient client;
     // コンストラクタでスペースIDとアクセストークンを受け取る

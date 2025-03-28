@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Contentful-Javasilver"
+rootProject.name = "My Applicationss"
 include(":app")
  
