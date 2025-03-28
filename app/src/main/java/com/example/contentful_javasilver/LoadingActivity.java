@@ -9,9 +9,10 @@ import android.view.animation.AlphaAnimation;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
 
 import com.contentful.java.cda.CDAEntry;
-import com.example.contentful_javasilver.data.AppDatabase;
+import com.example.contentful_javasilver.data.QuizDatabase;
 import com.example.contentful_javasilver.data.QuizEntity;
 
 import java.util.ArrayList;
@@ -23,10 +24,10 @@ public class LoadingActivity extends AppCompatActivity {
     private static final String TAG = "LoadingActivity";
     private static final String ACCESS_TOKEN = BuildConfig.CONTENTFUL_ACCESS_TOKEN;
     private static final String SPACE_ID = BuildConfig.CONTENTFUL_SPACE_ID;
-    private AppDatabase database;
+    private QuizDatabase database;
     private TextView loadingText;
     private int loadedCount = 0;
-    private static final int TOTAL_ENTRIES = 50;
+    private int totalEntries = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +44,7 @@ public class LoadingActivity extends AppCompatActivity {
             return;
         }
 
-        database = AppDatabase.getDatabase(this);
+        database = QuizDatabase.getDatabase(this);
         loadingText = findViewById(R.id.loadingText);
         
         // ローディングテキストのフェードインアニメーション
@@ -51,6 +52,28 @@ public class LoadingActivity extends AppCompatActivity {
         fadeIn.setDuration(1000);
         fadeIn.setFillAfter(true);
         loadingText.startAnimation(fadeIn);
+
+        // データベースにデータがあるかチェック
+        database.quizDao().getQuizCount().observe(this, count -> {
+            Log.d(TAG, String.format("Current database entries: %d", count));
+            if (count == 0) {
+                // データがない場合はContentfulから取得
+                fetchFromContentful();
+            } else {
+                // データがある場合は直接ホーム画面に遷移
+                Log.d(TAG, "Using existing database data");
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    Intent intent = new Intent(LoadingActivity.this, HomeActivity.class);
+                    startActivity(intent);
+                    overridePendingTransition(0, 0);
+                    finish();
+                });
+            }
+        });
+    }
+
+    private void fetchFromContentful() {
+        loadingText.setText("データを読み込み中...\n0/0");
 
         // Contentfulからデータを取得して保存
         ContentfulGetApi contentfulgetapi = new ContentfulGetApi(SPACE_ID, ACCESS_TOKEN);
@@ -67,6 +90,8 @@ public class LoadingActivity extends AppCompatActivity {
                     return Unit.INSTANCE;
                 }
 
+                totalEntries = entries.size();
+                Log.d(TAG, String.format("Total entries from Contentful: %d", totalEntries));
                 List<QuizEntity> quizEntities = new ArrayList<>();
                 
                 for (CDAEntry entry : entries) {
@@ -79,24 +104,25 @@ public class LoadingActivity extends AppCompatActivity {
                         String code = entry.getField("code");
                         String questionText = entry.getField("questionText");
                         List<String> choices = entry.getField("choices");
-                        List<Integer> answer = entry.getField("answer");
+                        List<Double> rawAnswers = entry.getField("answer");
                         String explanation = entry.getField("explanation");
 
-                        // 各フィールドの値をログ出力
-                        Log.d(TAG, String.format("Entry %s: qid=%s, chapter=%s, category=%s", 
-                            entry.id(), qid, chapter, category));
+                        // Double型のanswerをInteger型に変換
+                        List<Integer> answers = new ArrayList<>();
+                        if (rawAnswers != null) {
+                            for (Double answer : rawAnswers) {
+                                answers.add(answer.intValue());
+                            }
+                        }
 
                         if (qid != null && code != null) {
                             quizEntities.add(new QuizEntity(
                                 qid, chapter, category, questionCategory,
                                 difficulty, code, questionText,
-                                choices, answer, explanation
+                                choices, answers, explanation
                             ));
                             loadedCount++;
                             updateLoadingText();
-                        } else {
-                            Log.w(TAG, String.format("Skipping entry %s: qid=%s, code=%s", 
-                                entry.id(), qid, code));
                         }
                     } catch (Exception e) {
                         Log.e(TAG, "Error processing entry: " + entry.id(), e);
@@ -104,12 +130,12 @@ public class LoadingActivity extends AppCompatActivity {
                 }
 
                 Log.d(TAG, String.format("Successfully processed %d entries", loadedCount));
+                Log.d(TAG, String.format("Success rate: %.2f%%", (loadedCount * 100.0 / totalEntries)));
 
                 // データベースに保存
                 new Thread(() -> {
                     try {
-                        database.quizDao().deleteAll(); // 既存データを削除
-                        database.quizDao().insertAll(quizEntities); // 新しいデータを挿入
+                        database.quizDao().insertAll(quizEntities);
                         Log.d(TAG, "Successfully saved entries to database");
                         
                         // メインスレッドでホーム画面に遷移
@@ -130,9 +156,7 @@ public class LoadingActivity extends AppCompatActivity {
                 return Unit.INSTANCE;
             },
             errorMessage -> {
-                // エラー時の処理
                 Log.e(TAG, "Error fetching entries: " + errorMessage);
-                Log.e(TAG, "Contentful API Error Details: " + errorMessage);
                 runOnUiThread(() -> {
                     loadingText.setText("データの読み込みに失敗しました。\nアプリを再起動してください。");
                 });
@@ -143,7 +167,7 @@ public class LoadingActivity extends AppCompatActivity {
 
     private void updateLoadingText() {
         runOnUiThread(() -> {
-            loadingText.setText(String.format("データを読み込み中...\n%d/%d", loadedCount, TOTAL_ENTRIES));
+            loadingText.setText(String.format("データを読み込み中...\n%d/%d", loadedCount, totalEntries));
         });
     }
 } 

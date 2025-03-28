@@ -6,7 +6,7 @@ import androidx.room.TypeConverters;
 import androidx.annotation.NonNull;
 import java.util.List;
 
-@Entity(tableName = "quiz_table")
+@Entity(tableName = "quizzes")
 public class QuizEntity {
     @PrimaryKey
     @NonNull
@@ -67,4 +67,39 @@ public class QuizEntity {
     public void setExplanation(String explanation) { this.explanation = explanation; }
     public long getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(long updatedAt) { this.updatedAt = updatedAt; }
+
+    // Type Converters for Room
+    public static class Converters {
+        @androidx.room.TypeConverter
+        public static String fromStringList(List<String> value) {
+            return value == null ? null : String.join(",", value);
+        }
+
+        @androidx.room.TypeConverter
+        public static List<String> toStringList(String value) {
+            return value == null ? null : java.util.Arrays.asList(value.split(","));
+        }
+
+        @androidx.room.TypeConverter
+        public static String fromIntegerList(List<Integer> value) {
+            if (value == null) return null;
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < value.size(); i++) {
+                sb.append(value.get(i));
+                if (i < value.size() - 1) sb.append(",");
+            }
+            return sb.toString();
+        }
+
+        @androidx.room.TypeConverter
+        public static List<Integer> toIntegerList(String value) {
+            if (value == null) return null;
+            List<Integer> list = new java.util.ArrayList<>();
+            String[] parts = value.split(",");
+            for (String part : parts) {
+                list.add(Integer.parseInt(part.trim()));
+            }
+            return list;
+        }
+    }
 } 

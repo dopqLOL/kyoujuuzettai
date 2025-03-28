@@ -1,5 +1,6 @@
 package com.example.contentful_javasilver.data;
 
+import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
@@ -8,15 +9,12 @@ import java.util.List;
 
 @Dao
 public interface QuizDao {
-    @Query("SELECT * FROM quiz_table")
-    List<QuizEntity> getAll();
-
-    @Query("SELECT * FROM quiz_table WHERE qid = :qid")
-    QuizEntity getByQid(String qid);
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAll(List<QuizEntity> quizzes);
 
-    @Query("DELETE FROM quiz_table")
-    void deleteAll();
+    @Query("SELECT * FROM quizzes ORDER BY RANDOM() LIMIT :count")
+    LiveData<List<QuizEntity>> getRandomQuizzes(int count);
+
+    @Query("SELECT COUNT(*) FROM quizzes")
+    LiveData<Integer> getQuizCount();
 } 
