@@ -60,6 +60,37 @@ class DatabaseHelperCoroutines {
         }
     }
 
+    fun loadQuestionCategoriesAsync(
+        category: String,
+        quizDao: QuizDao,
+        onSuccess: (List<QuestionCategoryItem>) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        scope.launch {
+            try {
+                val quizzes = quizDao.getAllQuizzes()
+                val questionCategories = quizzes
+                    .filter { it.category == category }
+                    .map { QuestionCategoryItem(it.qid, it.questionCategory) }
+                    .distinctBy { it.questionCategory }
+                    .sortedBy { it.qid }
+
+                withContext(Dispatchers.Main) {
+                    onSuccess(questionCategories)
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    onError("問題カテゴリーの読み込みに失敗しました")
+                }
+            }
+        }
+    }
+
+    data class QuestionCategoryItem(
+        val qid: String,
+        val questionCategory: String
+    )
+
     fun cleanup() {
         scope.cancel()
     }

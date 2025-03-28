@@ -36,6 +36,9 @@
             android:name=".CategorySelectActivity"
             android:exported="false" />
         <activity
+            android:name=".QuestionCategorySelectActivity"
+            android:exported="false" />
+        <activity
             android:name=".ChapterSelectActivity"
             android:exported="false" />
     </application>

@@ -159,9 +159,8 @@ public class CategorySelectActivity extends AppCompatActivity {
             holder.binding.questionCountText.setText(item.questionCount + "問");
 
             holder.itemView.setOnClickListener(v -> {
-                Intent intent = new Intent(CategorySelectActivity.this, QuizActivity.class);
+                Intent intent = new Intent(CategorySelectActivity.this, QuestionCategorySelectActivity.class);
                 intent.putExtra("category", item.title);
-                intent.putExtra("questionCount", item.questionCount);
                 startActivity(intent);
             });
         }
