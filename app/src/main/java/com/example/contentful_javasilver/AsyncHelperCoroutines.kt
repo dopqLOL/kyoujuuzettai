@@ -9,9 +9,10 @@ import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import com.example.contentful_javasilver.data.QuizDatabase
 import com.example.contentful_javasilver.data.QuizEntity
+import com.example.contentful_javasilver.data.QuizDao
 import kotlin.Unit
 
-class AsyncHelperCoroutines(private val api: ContentfulGetApi) {
+class AsyncHelperCoroutines(private val api: ContentfulGetApi?) {
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
@@ -34,17 +35,18 @@ class AsyncHelperCoroutines(private val api: ContentfulGetApi) {
     }
 
     // 🔹 コールバック方式（Java から簡単に呼び出せる）
-    fun fetchEntriesAsync(contentType: String, callback: Function1<List<CDAEntry>, Unit>, errorCallback: Function1<String, Unit>) {
+    fun fetchEntriesAsync(contentType: String, callback: (List<CDAEntry>) -> Unit, errorCallback: (String) -> Unit) {
+        requireNotNull(api) { "API instance is required for this operation" }
         scope.launch {
             try {
-                val result = api.fetchEntries(contentType).items().map { it as CDAEntry }
+                val result = api?.fetchEntries(contentType)?.items()?.map { it as CDAEntry } ?: emptyList()
                 withContext(Dispatchers.Main) {
-                    callback.invoke(result)
+                    callback(result)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
                 withContext(Dispatchers.Main) {
-                    errorCallback.invoke(handleError(e))
+                    errorCallback(handleError(e))
                 }
             }
         }
@@ -52,10 +54,11 @@ class AsyncHelperCoroutines(private val api: ContentfulGetApi) {
 
     // 🔹 CompletableFuture 方式（Java からも扱いやすい）
     fun fetchEntriesFuture(contentType: String): CompletableFuture<List<CDAEntry>> {
+        requireNotNull(api) { "API instance is required for this operation" }
         val future = CompletableFuture<List<CDAEntry>>()
-        CoroutineScope(Dispatchers.IO).launch {
+        scope.launch {
             try {
-                val result = api.fetchEntries(contentType).items().map { it as CDAEntry }
+                val result = api?.fetchEntries(contentType)?.items()?.map { it as CDAEntry } ?: emptyList()
                 future.complete(result)
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -67,9 +70,10 @@ class AsyncHelperCoroutines(private val api: ContentfulGetApi) {
 
     // 🔹 特定のエントリを非同期取得（コールバック）
     fun fetchEntryByIdAsync(entryId: String, callback: (CDAEntry?) -> Unit, errorCallback: (String) -> Unit) {
-        CoroutineScope(Dispatchers.IO).launch {
+        requireNotNull(api) { "API instance is required for this operation" }
+        scope.launch {
             try {
-                val result = api.fetchEntryById(entryId)
+                val result = api?.fetchEntryById(entryId)
                 withContext(Dispatchers.Main) {
                     callback(result)
                 }
@@ -85,10 +89,11 @@ class AsyncHelperCoroutines(private val api: ContentfulGetApi) {
 
     // 🔹 CompletableFuture 方式で特定のエントリを取得
     fun fetchEntryByIdFuture(entryId: String): CompletableFuture<CDAEntry?> {
+        requireNotNull(api) { "API instance is required for this operation" }
         val future = CompletableFuture<CDAEntry?>()
-        CoroutineScope(Dispatchers.IO).launch {
+        scope.launch {
             try {
-                val result = api.fetchEntryById(entryId)
+                val result = api?.fetchEntryById(entryId)
                 future.complete(result)
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -134,4 +139,54 @@ class AsyncHelperCoroutines(private val api: ContentfulGetApi) {
     fun cleanup() {
         scope.cancel()
     }
+
+    fun loadCategoriesAsync(
+        chapterNumber: Int,
+        quizDao: QuizDao,
+        onSuccess: Function1<List<String>, Unit>,
+        onError: Function1<String, Unit>
+    ) {
+        scope.launch {
+            try {
+                val quizzes = quizDao.getAllQuizzes()
+                val categories = mutableListOf<String>()
+                for (quiz in quizzes) {
+                    if (quiz.chapter == chapterNumber.toString() && !categories.contains(quiz.category)) {
+                        categories.add(quiz.category)
+                    }
+                }
+                withContext(Dispatchers.Main) {
+                    onSuccess.invoke(categories)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    onError.invoke("カテゴリーの読み込みに失敗しました")
+                }
+            }
+        }
+    }
+
+    fun getQuizCountForCategoryAsync(
+        category: String,
+        quizDao: QuizDao,
+        onSuccess: Function1<Int, Unit>,
+        onError: Function1<String, Unit>
+    ) {
+        scope.launch {
+            try {
+                val quizzes = quizDao.getAllQuizzes()
+                val count = quizzes.count { quiz -> quiz.category == category }
+                withContext(Dispatchers.Main) {
+                    onSuccess.invoke(count)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    onError.invoke("問題数の取得に失敗しました")
+                }
+            }
+        }
+    }
+
 }

@@ -4,7 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-
+import com.google.android.material.button.MaterialButton;
 import androidx.appcompat.app.AppCompatActivity;
 
 /**
@@ -25,10 +25,21 @@ public class HomeActivity extends AppCompatActivity {
         
         // activity_home.xmlをこのアクティビティのレイアウトとして設定
         setContentView(R.layout.activity_home);
-        final Button randomCardbtn = findViewById(R.id.randomButton);
-        randomCardbtn.setOnClickListener(new View.OnClickListener(){
-            public void onClick(View v){
+
+        // ランダム出題ボタンのクリックリスナー
+        final MaterialButton randomButton = findViewById(R.id.randomButton);
+        randomButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
                 Intent intent = new Intent(HomeActivity.this, QuizActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        // 分野別に出題ボタンのクリックリスナー
+        final MaterialButton categoryButton = findViewById(R.id.categoryButton);
+        categoryButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent intent = new Intent(HomeActivity.this, ChapterSelectActivity.class);
                 startActivity(intent);
             }
         });

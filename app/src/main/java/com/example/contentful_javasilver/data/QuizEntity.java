@@ -17,19 +17,19 @@ public class QuizEntity {
     private String difficulty;
     private String code;
     private String questionText;
-    
+
     @TypeConverters(Converters.class)
     private List<String> choices;
-    
+
     @TypeConverters(Converters.class)
     private List<Integer> answer;
-    
+
     private String explanation;
     private long updatedAt;
 
     public QuizEntity(String qid, String chapter, String category, String questionCategory,
-                     String difficulty, String code, String questionText,
-                     List<String> choices, List<Integer> answer, String explanation) {
+                      String difficulty, String code, String questionText,
+                      List<String> choices, List<Integer> answer, String explanation) {
         this.qid = qid;
         this.chapter = chapter;
         this.category = category;
@@ -101,5 +101,15 @@ public class QuizEntity {
             }
             return list;
         }
+    }
+
+    @Override
+    public String toString() {
+        return "QuizEntity{" +
+                "qid='" + qid + '\'' +
+                ", chapter='" + chapter + '\'' +
+                ", category='" + category + '\'' +
+                ", questionCategory='" + questionCategory + '\'' +
+                '}';
     }
 } 

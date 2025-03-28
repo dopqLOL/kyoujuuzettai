@@ -32,6 +32,12 @@
             android:exported="false" />
         <activity
             android:name=".QuizActivity" />
+        <activity
+            android:name=".CategorySelectActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ChapterSelectActivity"
+            android:exported="false" />
     </application>
 
 </manifest>
