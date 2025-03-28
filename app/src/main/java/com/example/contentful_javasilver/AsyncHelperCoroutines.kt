@@ -7,8 +7,13 @@ import java.util.concurrent.CompletableFuture
 import java.io.IOException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
+import com.example.contentful_javasilver.data.QuizDatabase
+import com.example.contentful_javasilver.data.QuizEntity
+import kotlin.Unit
 
 class AsyncHelperCoroutines(private val api: ContentfulGetApi) {
+
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     // エラーメッセージの定数
     companion object {
@@ -29,17 +34,17 @@ class AsyncHelperCoroutines(private val api: ContentfulGetApi) {
     }
 
     // 🔹 コールバック方式（Java から簡単に呼び出せる）
-    fun fetchEntriesAsync(contentType: String, callback: (List<CDAEntry>) -> Unit, errorCallback: ((String) -> Unit)? = null) {
-        CoroutineScope(Dispatchers.IO).launch {
+    fun fetchEntriesAsync(contentType: String, callback: Function1<List<CDAEntry>, Unit>, errorCallback: Function1<String, Unit>) {
+        scope.launch {
             try {
                 val result = api.fetchEntries(contentType).items().map { it as CDAEntry }
                 withContext(Dispatchers.Main) {
-                    callback(result)
+                    callback.invoke(result)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
                 withContext(Dispatchers.Main) {
-                    errorCallback?.invoke(handleError(e))
+                    errorCallback.invoke(handleError(e))
                 }
             }
         }
@@ -61,7 +66,7 @@ class AsyncHelperCoroutines(private val api: ContentfulGetApi) {
     }
 
     // 🔹 特定のエントリを非同期取得（コールバック）
-    fun fetchEntryByIdAsync(entryId: String, callback: (CDAEntry?) -> Unit, errorCallback: ((String) -> Unit)? = null) {
+    fun fetchEntryByIdAsync(entryId: String, callback: (CDAEntry?) -> Unit, errorCallback: (String) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val result = api.fetchEntryById(entryId)
@@ -71,7 +76,7 @@ class AsyncHelperCoroutines(private val api: ContentfulGetApi) {
             } catch (e: Exception) {
                 e.printStackTrace()
                 withContext(Dispatchers.Main) {
-                    errorCallback?.invoke(handleError(e))
+                    errorCallback(handleError(e))
                     callback(null)
                 }
             }
@@ -91,5 +96,42 @@ class AsyncHelperCoroutines(private val api: ContentfulGetApi) {
             }
         }
         return future
+    }
+
+    // 🔹 データベース操作用のメソッド
+    fun insertQuizEntitiesAsync(db: QuizDatabase, entities: List<QuizEntity>, onSuccess: Function0<Unit>, onError: Function1<String, Unit>) {
+        scope.launch {
+            try {
+                db.quizDao().insertAll(entities)
+                withContext(Dispatchers.Main) {
+                    onSuccess.invoke()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    onError.invoke("データベースの更新に失敗しました")
+                }
+            }
+        }
+    }
+
+    fun getRandomQuizzesAsync(db: QuizDatabase, count: Int, onSuccess: Function1<List<QuizEntity>, Unit>, onError: Function1<String, Unit>) {
+        scope.launch {
+            try {
+                val quizzes = db.quizDao().getRandomQuizzesSync(count)
+                withContext(Dispatchers.Main) {
+                    onSuccess.invoke(quizzes)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    onError.invoke("クイズの取得に失敗しました")
+                }
+            }
+        }
+    }
+
+    fun cleanup() {
+        scope.cancel()
     }
 }

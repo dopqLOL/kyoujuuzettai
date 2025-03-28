@@ -21,6 +21,7 @@ public class ContentfulGetApi {
         return client
                 .fetch(CDAEntry.class)
                 .withContentType(contentType)
+                .limit(1000)
                 .all();
     }
     // 特定のエントリを取得するメソッド
