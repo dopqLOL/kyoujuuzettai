@@ -22,6 +22,7 @@ import com.example.contentful_javasilver.databinding.ActivityMainBinding;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import kotlin.Unit;
@@ -39,6 +40,8 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
     private QuizDatabase db;
     private List<QuizEntity> quizEntities = new ArrayList<>();
     private int currentQuizIndex = 0;
+    private AsyncHelperCoroutines asyncHelper;
+    private List<QuizEntity> allQuizzes = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,17 +55,10 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
 
         // Roomデータベースの初期化
         db = QuizDatabase.getDatabase(this);
+        asyncHelper = new AsyncHelperCoroutines(new ContentfulGetApi(SPACE_ID, ACCESS_TOKEN));
 
         // データベースにデータがあるかチェック
-        db.quizDao().getQuizCount().observe(this, count -> {
-            if (count == 0) {
-                // 初回起動時はContentfulからデータを取得
-                fetchFromContentful();
-            } else {
-                // データベースからクイズを取得
-                loadQuizzesFromDatabase();
-            }
-        });
+        loadQuizzesFromDatabase();
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -77,79 +73,95 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void fetchFromContentful() {
-        ContentfulGetApi contentfulgetapi = new ContentfulGetApi(SPACE_ID, ACCESS_TOKEN);
-        AsyncHelperCoroutines asyncHelper = new AsyncHelperCoroutines(contentfulgetapi);
-
         asyncHelper.fetchEntriesAsync("javaSilverQ",
             entries -> {
-                runOnUiThread(() -> {
-                    List<QuizEntity> entities = new ArrayList<>();
-                    for (CDAEntry entry : entries) {
-                        // Double型のanswerをInteger型に変換
-                        List<Double> rawAnswers = entry.getField("answer");
-                        List<Integer> intAnswers = new ArrayList<>();
-                        for (Double answer : rawAnswers) {
-                            intAnswers.add(answer.intValue());
-                        }
-
-                        QuizEntity entity = new QuizEntity(
-                            entry.getField("qid"),
-                            entry.getField("chapter"),
-                            entry.getField("category"),
-                            entry.getField("questioncategory"),
-                            entry.getField("difficulty"),
-                            entry.getField("code"),
-                            entry.getField("questionText"),
-                            entry.getField("choices"),
-                            intAnswers,
-                            entry.getField("explanation")
-                        );
-                        entities.add(entity);
+                List<QuizEntity> entities = new ArrayList<>();
+                for (CDAEntry entry : entries) {
+                    // Double型のanswerをInteger型に変換
+                    List<Double> rawAnswers = entry.getField("answer");
+                    List<Integer> intAnswers = new ArrayList<>();
+                    for (Double answer : rawAnswers) {
+                        intAnswers.add(answer.intValue());
                     }
-                    
-                    // データベースに保存
-                    new Thread(() -> {
-                        db.quizDao().insertAll(entities);
+
+                    QuizEntity entity = new QuizEntity(
+                        entry.getField("qid"),
+                        entry.getField("chapter"),
+                        entry.getField("category"),
+                        entry.getField("questioncategory"),
+                        entry.getField("difficulty"),
+                        entry.getField("code"),
+                        entry.getField("questionText"),
+                        entry.getField("choices"),
+                        intAnswers,
+                        entry.getField("explanation")
+                    );
+                    entities.add(entity);
+                }
+                
+                // データベースに保存
+                asyncHelper.insertQuizEntitiesAsync(db, entities,
+                    () -> {
                         loadQuizzesFromDatabase();
-                    }).start();
-                });
+                        return Unit.INSTANCE;
+                    },
+                    error -> {
+                        Toast.makeText(this, error, Toast.LENGTH_LONG).show();
+                        return Unit.INSTANCE;
+                    }
+                );
                 return Unit.INSTANCE;
             },
-            errorMessage -> {
-                runOnUiThread(() -> {
-                    Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show();
-                });
+            error -> {
+                Toast.makeText(this, error, Toast.LENGTH_LONG).show();
                 return Unit.INSTANCE;
             }
         );
     }
 
     private void loadQuizzesFromDatabase() {
-        db.quizDao().getRandomQuizzes(QUIZ_COUNT).observe(this, quizzes -> {
-            quizEntities = quizzes;
-            if (!quizEntities.isEmpty()) {
-                showNextQuiz();
+        new Thread(() -> {
+            try {
+                allQuizzes = db.quizDao().getAllQuizzes();
+                if (allQuizzes.isEmpty()) {
+                    runOnUiThread(() -> fetchFromContentful());
+                } else {
+                    getRandomQuizzes();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                runOnUiThread(() -> Toast.makeText(this, "データの読み込みに失敗しました", Toast.LENGTH_LONG).show());
             }
-        });
+        }).start();
+    }
+
+    private void getRandomQuizzes() {
+        List<QuizEntity> shuffled = new ArrayList<>(allQuizzes);
+        Collections.shuffle(shuffled);
+        quizEntities = shuffled.subList(0, Math.min(QUIZ_COUNT, shuffled.size()));
+        runOnUiThread(this::showNextQuiz);
     }
 
     private void showNextQuiz() {
-        if (currentQuizIndex >= quizEntities.size()) {
-            showResult();
-            return;
-        }
-
-        binding.countLabel.setText(getString(R.string.count_label, quizCount));
-
         QuizEntity currentQuiz = quizEntities.get(currentQuizIndex);
         
-        binding.questionLabel.setText(currentQuiz.getQuestionText());
+        // 変更があった場合のみ更新
+        if (!currentQuiz.getQid().equals(binding.countLabel.getText())) {
+            binding.countLabel.setText(currentQuiz.getQid());
+        }
         
+        if (!currentQuiz.getQuestionText().equals(binding.questionLabel.getText())) {
+            binding.questionLabel.setText(currentQuiz.getQuestionText());
+        }
+        
+        // コードブロックの表示/非表示の最適化
         String code = currentQuiz.getCode();
         if (code != null && !code.isEmpty()) {
-            codeBlock1.setText(code);
-            codeBlock1.setVisibility(View.VISIBLE);
-        } else {
+            if (codeBlock1.getVisibility() != View.VISIBLE || !code.equals(codeBlock1.getText())) {
+                codeBlock1.setText(code);
+                codeBlock1.setVisibility(View.VISIBLE);
+            }
+        } else if (codeBlock1.getVisibility() != View.GONE) {
             codeBlock1.setVisibility(View.GONE);
         }
 
@@ -207,6 +219,14 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
                 })
                 .setCancelable(false)
                 .show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (asyncHelper != null) {
+            asyncHelper.cleanup();
+        }
     }
 }
 
