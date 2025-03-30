@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/startFragment">
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.example.contentful_javasilver.HomeFragment"
+        android:label="ホーム"
+        tools:layout="@layout/fragment_home">
+        <action
+            android:id="@+id/action_homeFragment_to_chapterFragment"
+            app:destination="@id/chapterFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_quizFragment"
+            app:destination="@id/quizFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/chapterFragment"
+        android:name="com.example.contentful_javasilver.ChapterFragment"
+        android:label="チャプター選択"
+        tools:layout="@layout/fragment_chapter">
+        <action
+            android:id="@+id/action_chapterFragment_to_categoryFragment"
+            app:destination="@id/categoryFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/categoryFragment"
+        android:name="com.example.contentful_javasilver.CategoryFragment"
+        android:label="カテゴリー選択"
+        tools:layout="@layout/fragment_category">
+        <action
+            android:id="@+id/action_categoryFragment_to_questionCategoryFragment"
+            app:destination="@id/questionCategoryFragment" />
+        <argument
+            android:name="chapterNumber"
+            app:argType="integer" />
+        <argument
+            android:name="chapterTitle"
+            app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/questionCategoryFragment"
+        android:name="com.example.contentful_javasilver.QuestionCategoryFragment"
+        android:label="問題カテゴリー選択"
+        tools:layout="@layout/fragment_question_category">
+        <action
+            android:id="@+id/action_questionCategoryFragment_to_quizFragment"
+            app:destination="@id/quizFragment" />
+        <argument
+            android:name="category"
+            app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/quizFragment"
+        android:name="com.example.contentful_javasilver.QuizFragment"
+        android:label="クイズ"
+        tools:layout="@layout/fragment_quiz">
+        <argument
+            android:name="qid"
+            app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.example.contentful_javasilver.SettingsFragment"
+        android:label="設定" />
+
+    <fragment
+        android:id="@+id/loadingFragment"
+        android:name="com.example.contentful_javasilver.LoadingFragment"
+        android:label="ローディング"
+        tools:layout="@layout/fragment_loading">
+        <action
+            android:id="@+id/action_loading_to_home"
+            app:destination="@id/homeFragment"
+            app:popUpTo="@id/loadingFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/startFragment"
+        android:name="com.example.contentful_javasilver.StartFragment"
+        android:label="スタート画面"
+        tools:layout="@layout/fragment_start">
+        <action
+            android:id="@+id/action_start_to_loading"
+            app:destination="@id/loadingFragment" />
+    </fragment>
+
+</navigation> 

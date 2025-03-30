@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 5,
-    "identityHash": "385142fb8e3eeb43c0cad167e5b124d3",
+    "identityHash": "8151e2ce2cfd9a732e35b801b6c0301b",
     "entities": [
       {
         "tableName": "quizzes",
@@ -81,14 +81,42 @@
             "qid"
           ]
         },
-        "indices": [],
+        "indices": [
+          {
+            "name": "index_quizzes_category",
+            "unique": false,
+            "columnNames": [
+              "category"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_quizzes_category` ON `${TABLE_NAME}` (`category`)"
+          },
+          {
+            "name": "index_quizzes_chapter",
+            "unique": false,
+            "columnNames": [
+              "chapter"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_quizzes_chapter` ON `${TABLE_NAME}` (`chapter`)"
+          },
+          {
+            "name": "index_quizzes_questionCategory",
+            "unique": false,
+            "columnNames": [
+              "questionCategory"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_quizzes_questionCategory` ON `${TABLE_NAME}` (`questionCategory`)"
+          }
+        ],
         "foreignKeys": []
       }
     ],
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '385142fb8e3eeb43c0cad167e5b124d3')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '8151e2ce2cfd9a732e35b801b6c0301b')"
     ]
   }
 }

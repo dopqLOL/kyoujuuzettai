@@ -28,4 +28,9 @@ public class ContentfulGetApi {
     public CDAEntry fetchEntryById(String entryId) {
         return client.fetch(CDAEntry.class).one(entryId);
     }
+    
+    // CDAClientインスタンスを取得するメソッド
+    public CDAClient getClient() {
+        return this.client;
+    }
 }

@@ -6,4 +6,14 @@
     <string name="btn_answer">選択肢</string>
     <string name="code_block">&lt;LinearLayout xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;\n    android:layout_width=&quot;match_parent&quot;\n    android:layout_height=&quot;match_parent&quot;\n    android:orientation=&quot;vertical&quot;&gt;\n\n    &lt;TextView\n        android:layout_width=&quot;wrap_content&quot;\n        android:layout_height=&quot;wrap_content&quot;\n        android:text=&quot;Hello World!&quot; /&gt;\n\n&lt;/LinearLayout&gt;</string>
     <string name="logo_description">JCVロゴ</string>
+
+    <!-- Loading Status -->
+    <string name="loading_status_checking">データを確認中...</string>
+    <string name="loading_status_downloading">最新データをダウンロード中...</string>
+    <string name="loading_status_saving">データベースに保存中...</string>
+    <string name="loading_status_loading">データを読み込み中...</string>
+    <string name="loading_status_complete">完了！</string>
+    <string name="loading_status_error_download">エラー: データのダウンロードに失敗しました</string>
+    <string name="loading_status_error_saving">エラー: データベースへの保存に失敗しました</string>
+    <string name="loading_status_error_no_data">エラー: 保存するデータがありません</string>
 </resources>

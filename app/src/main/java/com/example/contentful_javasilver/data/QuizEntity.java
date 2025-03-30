@@ -5,8 +5,15 @@ import androidx.room.PrimaryKey;
 import androidx.room.TypeConverters;
 import androidx.annotation.NonNull;
 import java.util.List;
+import androidx.room.Index;
 
-@Entity(tableName = "quizzes")
+@Entity(tableName = "quizzes", 
+    indices = {
+        @Index(value = {"category"}),
+        @Index(value = {"chapter"}),
+        @Index(value = {"questionCategory"})
+    }
+)
 public class QuizEntity {
     @PrimaryKey
     @NonNull

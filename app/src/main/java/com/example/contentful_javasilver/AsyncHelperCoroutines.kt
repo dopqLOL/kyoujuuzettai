@@ -11,6 +11,7 @@ import com.example.contentful_javasilver.data.QuizDatabase
 import com.example.contentful_javasilver.data.QuizEntity
 import com.example.contentful_javasilver.data.QuizDao
 import kotlin.Unit
+import android.util.Log
 
 class AsyncHelperCoroutines(private val api: ContentfulGetApi?) {
 
@@ -184,6 +185,53 @@ class AsyncHelperCoroutines(private val api: ContentfulGetApi?) {
                 e.printStackTrace()
                 withContext(Dispatchers.Main) {
                     onError.invoke("問題数の取得に失敗しました")
+                }
+            }
+        }
+    }
+
+    /**
+     * ContentfulからすべてのデータをFetchするメソッド
+     * 進捗状況をレポートする機能付き
+     */
+    fun fetchAllEntriesAsync(
+        contentType: String,
+        onProgress: (Int, String) -> Unit,
+        onSuccess: (List<CDAEntry>) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        requireNotNull(api) { "API instance is required for this operation" }
+        scope.launch {
+            try {
+                withContext(Dispatchers.Main) {
+                    onProgress(0, "Contentfulに接続中...")
+                }
+                
+                // 一度に大量のデータを取得（最大1000件）
+                val client = api.getClient() ?: throw IllegalStateException("Contentful Client is null")
+                
+                withContext(Dispatchers.Main) {
+                    onProgress(20, "データをダウンロード中...")
+                }
+                
+                // クエリを構築して実行
+                val query = client.fetch(CDAEntry::class.java)
+                    .withContentType(contentType)
+                    .where("limit", "1000")  // limitをパラメータとして設定
+                
+                val response = query.all()
+                val entries = response.items().filterIsInstance<CDAEntry>()
+                
+                withContext(Dispatchers.Main) {
+                    onProgress(80, "ダウンロード完了: ${entries.size}件のデータ")
+                    onSuccess(entries)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                val errorMsg = handleError(e)
+                Log.e("AsyncHelper", "Fetch all entries error: $errorMsg", e)
+                withContext(Dispatchers.Main) {
+                    onError(errorMsg)
                 }
             }
         }

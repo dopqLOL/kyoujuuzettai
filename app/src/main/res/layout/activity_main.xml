@@ -1,111 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".QuizActivity"
-    android:orientation="vertical"
-    android:padding="24dp"
-    android:background="#FFFFFF">
+    tools:context=".MainActivity">
 
-    <TextView
-        android:id="@+id/countLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/count_label"
-        android:textSize="20sp"
-        android:textColor="#666666"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/questionLabel"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/question_label"
-        android:textSize="22sp"
-        android:textColor="#333333"
-        android:layout_marginTop="32dp"
-        android:lineSpacingExtra="8dp" />
-
-    <ScrollView
-        android:layout_width="match_parent"
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/nav_host_fragment"
+        android:name="androidx.navigation.fragment.NavHostFragment"
+        android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:background="#F8F9FA"
-        android:padding="20dp"
-        android:layout_marginTop="24dp"
-        android:scrollbars="none">
+        app:defaultNavHost="true"
+        app:layout_constraintBottom_toTopOf="@+id/bottom_navigation"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:navGraph="@navigation/nav_graph" />
 
-        <TextView
-            android:id="@+id/codeBlock"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fontFamily="monospace"
-            android:text="@string/code_block"
-            android:textColor="#2C3E50"
-            android:textSize="15sp"
-            android:lineSpacingExtra="4dp" />
-    </ScrollView>
-
-    <LinearLayout
-        android:layout_width="match_parent"
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_marginTop="32dp">
+        android:background="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:menu="@menu/bottom_navigation_menu" />
 
-        <Button
-            android:id="@+id/answerBtn1"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/btn_answer"
-            android:textSize="16sp"
-            android:padding="16dp"
-            android:backgroundTint="#FFFFFF"
-            android:textColor="#2C3E50"
-            android:strokeColor="#E0E0E0"
-            tools:ignore="DuplicateSpeakableTextCheck" />
-
-        <Button
-            android:id="@+id/answerBtn2"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/btn_answer"
-            android:textSize="16sp"
-            android:padding="16dp"
-            android:backgroundTint="#FFFFFF"
-            android:textColor="#2C3E50"
-            android:strokeColor="#E0E0E0"
-            android:layout_marginTop="12dp" />
-
-        <Button
-            android:id="@+id/answerBtn3"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/btn_answer"
-            android:textSize="16sp"
-            android:padding="16dp"
-            android:backgroundTint="#FFFFFF"
-            android:textColor="#2C3E50"
-            android:strokeColor="#E0E0E0"
-            android:layout_marginTop="12dp" />
-
-        <Button
-            android:id="@+id/answerBtn4"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/btn_answer"
-            android:textSize="16sp"
-            android:padding="16dp"
-            android:backgroundTint="#FFFFFF"
-            android:textColor="#2C3E50"
-            android:strokeColor="#E0E0E0"
-            android:layout_marginTop="12dp" />
-    </LinearLayout>
-
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

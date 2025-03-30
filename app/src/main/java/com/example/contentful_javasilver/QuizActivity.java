@@ -1,6 +1,5 @@
 package com.example.contentful_javasilver;
 
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -12,13 +11,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.Observer;
 
 import com.contentful.java.cda.CDAEntry;
 import com.example.contentful_javasilver.data.QuizDatabase;
 import com.example.contentful_javasilver.data.QuizEntity;
-import com.example.contentful_javasilver.databinding.ActivityMainBinding;
+import com.example.contentful_javasilver.databinding.ActivityQuizBinding;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.ArrayList;
@@ -29,7 +26,7 @@ import kotlin.Unit;
 
 public class QuizActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private ActivityMainBinding binding;
+    private ActivityQuizBinding binding;
     private List<Integer> rightAnswers;
     private int rightAnswerCount;
     private int quizCount = 1;
@@ -47,7 +44,7 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        binding = ActivityQuizBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         // TextViewの参照を取得

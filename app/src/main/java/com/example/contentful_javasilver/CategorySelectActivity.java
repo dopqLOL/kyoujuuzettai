@@ -65,32 +65,16 @@ public class CategorySelectActivity extends AppCompatActivity {
     }
 
     private void loadCategories() {
-        // デバッグ用のログを追加
-        new Thread(() -> {
-            try {
-                List<?> allQuizzes = quizDao.getAllQuizzes();
-                android.util.Log.d("CategorySelectActivity", "Total quizzes in DB: " + allQuizzes.size());
-                for (Object quiz : allQuizzes) {
-                    android.util.Log.d("CategorySelectActivity", "Quiz: " + quiz.toString());
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }).start();
-
         databaseHelper.loadCategoriesAsync(
             chapterNumber,
             quizDao,
             categories -> {
-                android.util.Log.d("CategorySelectActivity", "Loaded categories: " + categories.size());
                 List<CategoryItem> categoryItems = new ArrayList<>();
                 for (String category : categories) {
-                    android.util.Log.d("CategorySelectActivity", "Category: " + category);
                     databaseHelper.getQuizCountForCategoryAsync(
                         category,
                         quizDao,
                         count -> {
-                            android.util.Log.d("CategorySelectActivity", "Category: " + category + ", Count: " + count);
                             categoryItems.add(new CategoryItem(category, count));
                             if (categoryItems.size() == categories.size()) {
                                 categoryAdapter.updateCategories(categoryItems);
