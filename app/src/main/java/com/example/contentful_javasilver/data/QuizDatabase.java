@@ -10,7 +10,7 @@ import androidx.room.TypeConverters;
 /**
  * QuizデータベースのRoomデータベースクラス
  */
-@Database(entities = {QuizEntity.class}, version = 11, exportSchema = false)
+@Database(entities = {QuizEntity.class, QuizHistory.class}, version = 13, exportSchema = false) // Changed ProblemStats to QuizHistory and incremented version
 @TypeConverters({QuizEntity.Converters.class})
 public abstract class QuizDatabase extends RoomDatabase {
     private static volatile QuizDatabase INSTANCE;
@@ -43,4 +43,4 @@ public abstract class QuizDatabase extends RoomDatabase {
         }
         return INSTANCE;
     }
-} 
+}

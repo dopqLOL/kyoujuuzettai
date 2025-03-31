@@ -74,7 +74,7 @@
                 app:iconSize="24dp" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/allQuestionsButton"
+                android:id="@+id/problemListButton"
                 style="@style/Widget.Material3.Button.TonalButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -107,4 +107,4 @@
         </LinearLayout>
     </ScrollView>
 
-</androidx.constraintlayout.widget.ConstraintLayout> 
+</androidx.constraintlayout.widget.ConstraintLayout>

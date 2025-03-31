@@ -5,12 +5,21 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
+import android.graphics.Color;
+import android.os.Bundle;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox; // CheckBoxをインポート
+import android.widget.CompoundButton; // CompoundButtonをインポート
 import android.widget.Toast;
 
+import androidx.annotation.ColorInt; // ColorIntをインポート
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -19,38 +28,54 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 
 import com.example.contentful_javasilver.data.QuizEntity;
+import com.example.contentful_javasilver.data.QuizEntity;
 import com.example.contentful_javasilver.databinding.FragmentQuizBinding;
 import com.example.contentful_javasilver.viewmodels.QuizViewModel;
 
+import java.util.ArrayList; // ArrayListをインポート
+import java.util.Collections; // Collectionsをインポート
+import java.util.HashSet; // HashSetをインポート
 import java.util.List;
+import java.util.Set; // Setをインポート
 
-public class QuizFragment extends Fragment implements View.OnClickListener {
-    private static final String TAG = "QuizFragment"; // Log用TAG
-    private FragmentQuizBinding binding; // ViewBinding
+public class QuizFragment extends Fragment implements View.OnClickListener, CompoundButton.OnCheckedChangeListener {
+    private static final String TAG = "QuizFragment";
+    private FragmentQuizBinding binding;
     private QuizViewModel viewModel;
     private List<Integer> rightAnswers;
-    private String initialQid; // 初期表示用のqid
-    private String category; // カテゴリ選択からの遷移用
+    private List<CheckBox> answerCheckBoxes;
+    private List<Button> answerButtons; // Buttonのリストを追加
+    private String initialQid;
+    private String category;
+    private boolean isMultipleChoice = false; // 回答形式フラグ
+    private boolean isRandomMode = false; // ランダムモードフラグ
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentQuizBinding.inflate(inflater, container, false);
+        // リストの初期化は onViewCreated で行う (bindingが利用可能なため)
         return binding.getRoot();
     }
 
-    @Override
+     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
         // ViewModelの取得 (Activityスコープ)
         viewModel = new ViewModelProvider(requireActivity()).get(QuizViewModel.class);
 
-        // 引数からデータを取得
+        // 引数からデータを取得 (Safe Argsを使用)
         if (getArguments() != null) {
-            initialQid = getArguments().getString("qid");
-            category = getArguments().getString("category"); // カテゴリも受け取る
-            Log.d(TAG, "Arguments received - qid: " + initialQid + ", category: " + category);
+            QuizFragmentArgs args = QuizFragmentArgs.fromBundle(getArguments());
+            initialQid = args.getQid(); // Safe Argsからqidを取得
+            isRandomMode = args.getIsRandomMode(); // Safe ArgsからisRandomModeを取得
+            // category は ProblemListFragment からは渡されない想定
+            // category = args.getCategory(); // 必要であればnav_graphと遷移元で定義・設定
+            Log.d(TAG, "Arguments received - qid: " + initialQid + ", isRandomMode: " + isRandomMode);
         }
+
+        // リストの初期化
+        initializeAnswerControlsLists();
 
         // UIの初期設定
         setupObservers();
@@ -111,25 +136,51 @@ public class QuizFragment extends Fragment implements View.OnClickListener {
         // });
     }
 
+    // 回答コントロール（ButtonとCheckBox）のリストを初期化
+    private void initializeAnswerControlsLists() {
+        answerButtons = new ArrayList<>();
+        answerButtons.add(binding.answerBtn1);
+        answerButtons.add(binding.answerBtn2);
+        answerButtons.add(binding.answerBtn3);
+        answerButtons.add(binding.answerBtn4);
+
+        answerCheckBoxes = new ArrayList<>();
+        answerCheckBoxes.add(binding.answerCheck1);
+        answerCheckBoxes.add(binding.answerCheck2);
+        answerCheckBoxes.add(binding.answerCheck3);
+        answerCheckBoxes.add(binding.answerCheck4);
+    }
+
+
     private void setupClickListeners() {
-        binding.answerBtn1.setOnClickListener(this);
-        binding.answerBtn2.setOnClickListener(this);
-        binding.answerBtn3.setOnClickListener(this);
-        binding.answerBtn4.setOnClickListener(this);
+        // 単一回答ボタン
+        for (Button btn : answerButtons) {
+            btn.setOnClickListener(this);
+        }
+        // 複数回答チェックボックス
+        for (CheckBox cb : answerCheckBoxes) {
+            cb.setOnCheckedChangeListener(this);
+        }
+        // その他のボタン
+        binding.submitAnswerButton.setOnClickListener(this);
         binding.nextButton.setOnClickListener(this);
-        binding.backButton.setOnClickListener(this); // Add listener for back button
+        binding.backButton.setOnClickListener(this);
     }
 
     private void updateQuizUI(QuizEntity quiz) {
         Log.d(TAG, "Updating UI for quiz: " + quiz.getQid());
-        // UI要素をリセット
-        binding.explanationCard.setVisibility(View.GONE); // explanation_card を非表示にする
-        binding.nextButton.setVisibility(View.GONE);
-        setAnswerButtonsEnabled(true); // 回答ボタンを有効化
-        resetButtonStyles(); // ボタンのスタイルをリセット
+        rightAnswers = quiz.getAnswer();
+        isMultipleChoice = rightAnswers != null && rightAnswers.size() > 1;
+        Log.d(TAG, "Is multiple choice: " + isMultipleChoice + " (Answer count: " + (rightAnswers != null ? rightAnswers.size() : "null") + ")");
 
-        // qid表示 (フォーマット変更)
-        binding.countLabel.setText(quiz.getQid()); // "(qid)" から"qid"形式で表示に変更した
+        // UI要素をリセット
+        binding.explanationCard.setVisibility(View.GONE);
+        binding.nextButton.setVisibility(View.GONE);
+        resetAnswerControlStyles(); // ボタンとチェックボックスのスタイルをリセット
+        setAnswerControlsEnabled(true); // 回答コントロールを有効化
+
+        // qid表示
+        binding.countLabel.setText(quiz.getQid());
 
         // 質問文
         binding.questionLabel.setText(quiz.getQuestionText());
@@ -146,153 +197,275 @@ public class QuizFragment extends Fragment implements View.OnClickListener {
             binding.codeBlockCard.setVisibility(View.GONE); // CardViewを非表示
         }
 
-        // 選択肢と正解
+        // 選択肢
         List<String> choices = quiz.getChoices();
-        rightAnswers = quiz.getAnswer(); // 正解インデックスリストを保持
 
-        // ボタンのテキストと表示/非表示
-        Button[] buttons = {binding.answerBtn1, binding.answerBtn2, binding.answerBtn3, binding.answerBtn4};
-        for (int i = 0; i < buttons.length; i++) {
-            if (choices != null && i < choices.size()) {
-                buttons[i].setText(choices.get(i));
-                buttons[i].setVisibility(View.VISIBLE);
-            } else {
-                buttons[i].setVisibility(View.GONE); // 選択肢が足りないボタンは非表示
+        // 回答形式に応じてUIを切り替え
+        if (isMultipleChoice) {
+            // 複数回答
+            binding.answerButtonsLayout.setVisibility(View.GONE);
+            binding.answerChoicesLayout.setVisibility(View.VISIBLE);
+            binding.submitAnswerButton.setVisibility(View.VISIBLE);
+            binding.submitAnswerButton.setEnabled(false); // 初期状態は無効
+
+            for (int i = 0; i < answerCheckBoxes.size(); i++) {
+                CheckBox checkBox = answerCheckBoxes.get(i);
+                if (choices != null && i < choices.size()) {
+                    checkBox.setText(choices.get(i));
+                    checkBox.setVisibility(View.VISIBLE);
+                    checkBox.setChecked(false);
+                } else {
+                    checkBox.setVisibility(View.GONE);
+                }
+            }
+        } else {
+            // 単一回答
+            binding.answerButtonsLayout.setVisibility(View.VISIBLE);
+            binding.answerChoicesLayout.setVisibility(View.GONE);
+            binding.submitAnswerButton.setVisibility(View.GONE);
+
+            for (int i = 0; i < answerButtons.size(); i++) {
+                Button button = answerButtons.get(i);
+                if (choices != null && i < choices.size()) {
+                    button.setText(choices.get(i));
+                    button.setVisibility(View.VISIBLE);
+                } else {
+                    button.setVisibility(View.GONE);
+                }
             }
         }
     }
 
-    // showResultメソッドは不要になったため削除
-    // private void showResult() { ... }
 
-    // 回答ボタンの有効/無効を切り替えるヘルパーメソッド
-    private void setAnswerButtonsEnabled(boolean enabled) {
-        Log.d(TAG, "Setting answer buttons enabled: " + enabled);
-        binding.answerBtn1.setEnabled(enabled);
-        binding.answerBtn2.setEnabled(enabled);
-        binding.answerBtn3.setEnabled(enabled);
-        binding.answerBtn4.setEnabled(enabled);
+    // 回答コントロール（ボタン、チェックボックス、回答ボタン）の有効/無効を切り替える
+    private void setAnswerControlsEnabled(boolean enabled) {
+        Log.d(TAG, "Setting answer controls enabled: " + enabled + ", isMultipleChoice: " + isMultipleChoice);
+        if (isMultipleChoice) {
+            for (CheckBox checkBox : answerCheckBoxes) {
+                checkBox.setEnabled(enabled);
+            }
+            // submitAnswerButtonの有効状態はチェック状態にも依存するため、ここでは制御しない
+            // onCheckedChanged と updateQuizUI で制御
+             binding.submitAnswerButton.setEnabled(enabled && isAnyCheckboxChecked());
+        } else {
+            for (Button button : answerButtons) {
+                button.setEnabled(enabled);
+            }
+        }
     }
 
-    // ボタンのスタイルをデフォルトに戻す
-    private void resetButtonStyles() {
-        // MaterialButtonのデフォルトスタイルに戻す処理（必要なら）
-        // 例: binding.answerBtn1.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.design_default_color_primary));
-        // Material Design 3 のスタイルによっては不要な場合もある
+    // ボタンとチェックボックスのスタイルをデフォルトに戻す
+    private void resetAnswerControlStyles() {
+        @ColorInt int defaultTextColor = ContextCompat.getColor(requireContext(), R.color.text_primary);
+
+        // ボタンのリセット (MaterialButtonOutlinedStyleのデフォルトに戻すのは難しいので、色をリセット)
+        for (Button button : answerButtons) {
+             button.setTextColor(defaultTextColor); // 必要に応じて色を設定
+             button.setBackgroundColor(Color.TRANSPARENT); // 背景を透明に (OutlinedButtonの場合)
+             // button.setBackgroundTintList(null); // Tintをリセット
+             // button.setStrokeColor(null); // 枠線の色をリセット
+        }
+
+        // チェックボックスのリセット
+        for (CheckBox checkBox : answerCheckBoxes) {
+            checkBox.setTextColor(defaultTextColor);
+            checkBox.setBackgroundColor(Color.TRANSPARENT);
+            checkBox.setButtonTintList(null); // Tintをデフォルトに戻す
+        }
     }
 
-    // 正解・不正解のスタイルをボタンに適用
-    private void highlightAnswers(int selectedIndex) {
-        Button[] buttons = {binding.answerBtn1, binding.answerBtn2, binding.answerBtn3, binding.answerBtn4};
+    // 正解・不正解のスタイルを適用 (単一/複数対応)
+    private void highlightAnswers(int selectedIndex) { // selectedIndexは単一選択の場合のみ意味を持つ
         QuizEntity currentQuiz = viewModel.getCurrentQuiz().getValue();
-        if (currentQuiz == null || currentQuiz.getChoices() == null) return;
+        if (currentQuiz == null || currentQuiz.getChoices() == null || rightAnswers == null) return;
 
-        List<String> choices = currentQuiz.getChoices();
+        @ColorInt int correctColor = ContextCompat.getColor(requireContext(), R.color.correct_color);
+        @ColorInt int incorrectColor = ContextCompat.getColor(requireContext(), R.color.incorrect_color);
+        @ColorInt int missedColor = ContextCompat.getColor(requireContext(), R.color.missed_color);
+        @ColorInt int defaultColor = ContextCompat.getColor(requireContext(), R.color.text_primary);
 
-        for (int i = 0; i < buttons.length; i++) {
-            if (i >= choices.size()) continue; // 存在しない選択肢はスキップ
+        Set<Integer> answerSet = new HashSet<>(rightAnswers);
 
-            if (rightAnswers != null && rightAnswers.contains(i)) {
-                // 正解のボタン
-                // buttons[i].setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.correct_color)); // 正解色
-            } else if (i == selectedIndex) {
-                // 選択したが不正解のボタン
-                // buttons[i].setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.incorrect_color)); // 不正解色
-            } else {
-                // 選択されなかった不正解のボタン（スタイル変更なし or グレーアウトなど）
+        if (isMultipleChoice) {
+            // 複数回答 (チェックボックス)
+            List<Integer> selectedIndices = getSelectedIndices();
+            Set<Integer> selectedSet = new HashSet<>(selectedIndices);
+
+            for (int i = 0; i < answerCheckBoxes.size(); i++) {
+                CheckBox checkBox = answerCheckBoxes.get(i);
+                if (checkBox.getVisibility() != View.VISIBLE) continue;
+
+                boolean isCorrectAnswer = answerSet.contains(i);
+                boolean isSelected = selectedSet.contains(i);
+
+                if (isCorrectAnswer && isSelected) checkBox.setTextColor(correctColor);
+                else if (!isCorrectAnswer && isSelected) checkBox.setTextColor(incorrectColor);
+                else if (isCorrectAnswer && !isSelected) checkBox.setTextColor(missedColor);
+                else checkBox.setTextColor(defaultColor);
+            }
+        } else {
+            // 単一回答 (ボタン)
+            for (int i = 0; i < answerButtons.size(); i++) {
+                Button button = answerButtons.get(i);
+                if (button.getVisibility() != View.VISIBLE) continue;
+
+                boolean isCorrectAnswer = answerSet.contains(i); // 単一でもSetで判定可能
+
+                if (isCorrectAnswer) {
+                    button.setTextColor(correctColor); // 正解ボタン
+                    // button.setBackgroundTintList(ColorStateList.valueOf(correctColor)); // 背景色変更など
+                } else if (i == selectedIndex) {
+                    button.setTextColor(incorrectColor); // 選択した不正解ボタン
+                    // button.setBackgroundTintList(ColorStateList.valueOf(incorrectColor));
+                } else {
+                    button.setTextColor(defaultColor); // その他のボタン
+                    // button.setBackgroundTintList(null);
+                }
             }
         }
+    }
+
+    // 選択されたチェックボックスのインデックスリストを取得 (複数回答用)
+    private List<Integer> getSelectedIndices() {
+        List<Integer> selectedIndices = new ArrayList<>();
+        for (int i = 0; i < answerCheckBoxes.size(); i++) {
+            if (answerCheckBoxes.get(i).isChecked() && answerCheckBoxes.get(i).getVisibility() == View.VISIBLE) {
+                selectedIndices.add(i);
+            }
+        }
+        return selectedIndices;
+    }
+
+     // いずれかのチェックボックスがチェックされているか (複数回答用)
+     private boolean isAnyCheckboxChecked() {
+         if (!isMultipleChoice) return false; // 単一回答時は常にfalse
+         for (CheckBox checkBox : answerCheckBoxes) {
+             if (checkBox.isChecked() && checkBox.getVisibility() == View.VISIBLE) {
+                 return true;
+             }
+         }
+         return false;
+     }
+
+    // 正誤判定ロジック
+    private boolean checkAnswer(int selectedIndex) { // 単一回答用
+        if (rightAnswers == null || rightAnswers.isEmpty()) return false;
+        // 単一回答の場合、rightAnswersには要素が1つだけのはず
+        return rightAnswers.contains(selectedIndex);
+    }
+    private boolean checkAnswer(List<Integer> selectedIndices) { // 複数回答用
+        if (rightAnswers == null || selectedIndices == null) return false;
+        return new HashSet<>(selectedIndices).equals(new HashSet<>(rightAnswers));
     }
 
 
     @Override
     public void onClick(View view) {
         int id = view.getId();
-        Log.d(TAG, "onClick triggered for view ID: " + id);
+        Log.d(TAG, "onClick triggered for view ID: " + id + ", isMultipleChoice: " + isMultipleChoice);
+
+        QuizEntity currentQuiz = viewModel.getCurrentQuiz().getValue();
+        if (currentQuiz == null) {
+            Log.w(TAG, "Current quiz is null, cannot process click.");
+            return;
+        }
+        String explanation = currentQuiz.getExplanation();
 
         if (id == R.id.next_button) {
-            Log.d(TAG, "Next button clicked");
-            // 次へボタンが押された場合
-            viewModel.moveToNextQuiz(); // ViewModelに次のシーケンシャルなクイズへの遷移を指示
-            // 次の問題がない場合のエラーメッセージはViewModel内のerrorMessageで処理され、ObserverでToast表示される想定
+            Log.d(TAG, "Next button clicked, isRandomMode: " + isRandomMode);
+            // isRandomMode の値に応じて次のクイズをロード
+            viewModel.loadNextQuiz(isRandomMode);
         } else if (id == R.id.backButton) {
-            // 戻るボタンが押された場合
             Log.d(TAG, "Back button clicked");
-            // Jetpack Navigationを使用して前の画面に戻る
             try {
-                Navigation.findNavController(requireView()).popBackStack();
-            } catch (Exception e) {
-                Log.e(TAG, "Failed to navigate back", e);
-                // Fallback or error handling if needed
+            // Navigate directly to HomeFragment instead of just popping the back stack
+            Navigation.findNavController(requireView()).navigate(R.id.homeFragment);
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to navigate to home", e);
+        }
+    } else if (id == R.id.submitAnswerButton && isMultipleChoice) {
+            // 複数回答の「回答する」ボタン
+            Log.d(TAG, "Submit Answer button clicked (Multiple Choice)");
+            List<Integer> selectedIndices = getSelectedIndices();
+            boolean isCorrect = checkAnswer(selectedIndices);
+            Log.d(TAG, "Answer is correct: " + isCorrect + ", Selected: " + selectedIndices);
+            // Record the history
+            if (currentQuiz != null && currentQuiz.getQid() != null) {
+                viewModel.recordAnswerHistory(currentQuiz.getQid(), isCorrect); // Use new method name
             }
-        } else if (id == R.id.answerBtn1 || id == R.id.answerBtn2 || id == R.id.answerBtn3 || id == R.id.answerBtn4) {
-            // 回答ボタンが押された場合
+            // Increment correct count (if needed for immediate UI feedback, though stats are now separate)
+            if (isCorrect) viewModel.incrementCorrectAnswerCount();
+
+            highlightAnswers(-1); // ハイライト表示 (selectedIndexは不要)
+            showExplanation(isCorrect, explanation);
+            setAnswerControlsEnabled(false);
+            binding.submitAnswerButton.setVisibility(View.GONE);
+            binding.nextButton.setVisibility(View.VISIBLE);
+
+        } else if (!isMultipleChoice && (id == R.id.answerBtn1 || id == R.id.answerBtn2 || id == R.id.answerBtn3 || id == R.id.answerBtn4)) {
+            // 単一回答の回答ボタン
             Button answerBtn = (Button) view;
-            String btnText = answerBtn.getText().toString();
-            Log.d(TAG, "Answer button clicked: " + btnText);
+            int selectedIndex = answerButtons.indexOf(answerBtn); // リストからインデックス取得
+            Log.d(TAG, "Answer button clicked (Single Choice): index " + selectedIndex);
 
-            QuizEntity currentQuiz = viewModel.getCurrentQuiz().getValue();
-            if (currentQuiz == null) {
-                Log.w(TAG, "Current quiz is null, cannot process answer.");
-                return;
-            }
-
-            List<String> choices = currentQuiz.getChoices();
-            int selectedIndex = -1;
-            if (choices != null) {
-                 selectedIndex = choices.indexOf(btnText);
-            }
             if (selectedIndex == -1) {
-                Log.w(TAG, "Selected choice text not found in current quiz choices.");
-                return; // 選択肢が見つからない
+                 Log.w(TAG, "Clicked button not found in list.");
+                 return;
             }
 
-            Log.d(TAG, "Selected index: " + selectedIndex);
-
-            String explanation = currentQuiz.getExplanation();
-
-            // 正誤判定
-            boolean isCorrect = rightAnswers != null && rightAnswers.contains(selectedIndex);
+            boolean isCorrect = checkAnswer(selectedIndex);
             Log.d(TAG, "Answer is correct: " + isCorrect);
-            if (isCorrect) {
-                viewModel.incrementCorrectAnswerCount();
+            // Record the history
+            if (currentQuiz != null && currentQuiz.getQid() != null) {
+                viewModel.recordAnswerHistory(currentQuiz.getQid(), isCorrect); // Use new method name
             }
+            // Increment correct count (if needed for immediate UI feedback)
+            if (isCorrect) viewModel.incrementCorrectAnswerCount();
 
-            // 正解・不正解をハイライト（任意）
-            highlightAnswers(selectedIndex);
-
-            // 正解/不正解テキストを作成
-            String resultText;
-            int resultColor;
-            if (isCorrect) {
-                resultText = "正解！";
-                resultColor = ContextCompat.getColor(requireContext(), R.color.correct_color);
-            } else {
-                resultText = "不正解";
-                resultColor = ContextCompat.getColor(requireContext(), R.color.incorrect_color);
-            }
-            SpannableString spannableResult = new SpannableString(resultText);
-            spannableResult.setSpan(new ForegroundColorSpan(resultColor), 0, resultText.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-            // 解説文と結合して表示
-            String originalExplanation = (explanation != null && !explanation.isEmpty()) ? explanation : "解説はありません。";
-            binding.explanationTextView.setText(spannableResult);
-            binding.explanationTextView.append("\n\n"); // 改行を追加
-            binding.explanationTextView.append(originalExplanation);
-            binding.explanationCard.setVisibility(View.VISIBLE); // explanation_card を表示する
-
-            // 回答ボタンを無効化
-            setAnswerButtonsEnabled(false);
-
-            // 次へボタンを表示
+            highlightAnswers(selectedIndex); // ハイライト表示
+            showExplanation(isCorrect, explanation);
+            setAnswerControlsEnabled(false);
             binding.nextButton.setVisibility(View.VISIBLE);
         }
     }
+
+    // 解説表示ロジックを共通化
+    private void showExplanation(boolean isCorrect, String explanation) {
+        String resultText;
+        @ColorInt int resultColor;
+        if (isCorrect) {
+            resultText = "正解！";
+            resultColor = ContextCompat.getColor(requireContext(), R.color.correct_color);
+        } else {
+            resultText = "不正解";
+            resultColor = ContextCompat.getColor(requireContext(), R.color.incorrect_color);
+        }
+        SpannableString spannableResult = new SpannableString(resultText);
+        spannableResult.setSpan(new ForegroundColorSpan(resultColor), 0, resultText.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+        String originalExplanation = (explanation != null && !explanation.isEmpty()) ? explanation : "解説はありません。";
+        binding.explanationTextView.setText(spannableResult);
+        binding.explanationTextView.append("\n\n");
+        binding.explanationTextView.append(originalExplanation);
+        binding.explanationCard.setVisibility(View.VISIBLE);
+    }
+
+     @Override
+     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+         // 複数選択モードで、回答前の場合のみ「回答する」ボタンの有効状態を更新
+         if (isMultipleChoice && binding.submitAnswerButton.getVisibility() == View.VISIBLE && binding.submitAnswerButton.isEnabled() != isAnyCheckboxChecked()) {
+              Log.d(TAG, "onCheckedChanged: Updating submit button enabled state");
+             binding.submitAnswerButton.setEnabled(isAnyCheckboxChecked());
+         }
+     }
+
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         Log.d(TAG, "onDestroyView called");
-        binding = null; // ViewBindingの参照を解放
+        binding = null;
+        answerCheckBoxes = null;
+        answerButtons = null;
     }
 }

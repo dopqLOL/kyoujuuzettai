@@ -1,46 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/start_fragment_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_color">
-
-    <ImageView
-        android:id="@+id/logoImage"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:contentDescription="@string/app_name"
-        android:src="@mipmap/ic_launcher"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.35" />
+    android:background="@color/start_background_dark"
+    tools:context=".StartFragment">
 
     <TextView
         android:id="@+id/appTitle"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="Java Silver"
-        android:textColor="@color/text_primary"
-        android:textSize="32sp"
+        android:layout_marginHorizontal="32dp"
+        android:gravity="center"
+        android:text="@string/app_name"
+        android:textColor="@color/start_text_light"
+        android:textSize="28sp"
         android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/startPromptText"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/logoImage" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed" />
 
-    <Button
-        android:id="@+id/startButton"
+    <TextView
+        android:id="@+id/startPromptText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="48dp"
-        android:paddingHorizontal="48dp"
-        android:paddingVertical="16dp"
-        android:text="始める"
-        android:textSize="18sp"
+        android:text="@string/start_prompt"
+        android:textColor="@color/start_text_light"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/appTitle" />
 
-</androidx.constraintlayout.widget.ConstraintLayout> 
+</androidx.constraintlayout.widget.ConstraintLayout>

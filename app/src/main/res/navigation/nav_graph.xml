@@ -16,6 +16,9 @@
         <action
             android:id="@+id/action_homeFragment_to_quizFragment"
             app:destination="@id/quizFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_problemListFragment"
+            app:destination="@id/problemListFragment" />
     </fragment>
 
     <fragment
@@ -65,6 +68,10 @@
         <argument
             android:name="qid"
             app:argType="string" />
+        <argument
+            android:name="isRandomMode"
+            app:argType="boolean"
+            android:defaultValue="false" />
     </fragment>
 
     <fragment
@@ -94,4 +101,40 @@
             app:destination="@id/loadingFragment" />
     </fragment>
 
-</navigation> 
+    <fragment
+        android:id="@+id/problemListFragment"
+        android:name="com.example.contentful_javasilver.ProblemListFragment"
+        android:label="問題一覧"
+        tools:layout="@layout/fragment_problem_list">
+        <action
+            android:id="@+id/action_problemListFragment_to_quizFragment"
+            app:destination="@id/quizFragment" />
+        <!-- Argument definition for receiving problemId is already in quizFragment -->
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_history"
+        android:name="com.example.contentful_javasilver.HistoryFragment"
+        android:label="@string/title_history"
+        tools:layout="@layout/fragment_history">
+        <action
+            android:id="@+id/action_historyFragment_to_learningLogFragment"
+            app:destination="@id/learningLogFragment" />
+        <action
+            android:id="@+id/action_historyFragment_to_statisticsFragment"
+            app:destination="@id/statisticsFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/learningLogFragment"
+        android:name="com.example.contentful_javasilver.LearningLogFragment"
+        android:label="学習ログ"
+        tools:layout="@layout/fragment_learning_log" />
+
+    <fragment
+        android:id="@+id/statisticsFragment"
+        android:name="com.example.contentful_javasilver.StatisticsFragment"
+        android:label="学習統計"
+        tools:layout="@layout/fragment_statistics" />
+
+</navigation>

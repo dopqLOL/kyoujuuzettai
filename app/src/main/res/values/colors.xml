@@ -17,4 +17,9 @@
 
     <color name="correct_color">#4CAF50</color> <!-- Green -->
     <color name="incorrect_color">#F44336</color> <!-- Red -->
+    <color name="missed_color">#FFAB40</color> <!-- Amber A400 - For missed correct answers -->
+
+    <!-- Start Screen Chic Colors -->
+    <color name="start_background_dark">#212121</color> <!-- Dark Gray -->
+    <color name="start_text_light">#E0E0E0</color> <!-- Light Gray -->
 </resources>

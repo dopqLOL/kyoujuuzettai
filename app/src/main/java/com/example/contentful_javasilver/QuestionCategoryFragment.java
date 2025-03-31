@@ -60,7 +60,10 @@ public class QuestionCategoryFragment extends Fragment {
 
     private void setupViews() {
         binding.categoryTitleText.setText(selectedCategory);
-        binding.backButton.setOnClickListener(v -> requireActivity().getSupportFragmentManager().popBackStack());
+        binding.backButton.setOnClickListener(v -> {
+            // HomeFragmentへ直接遷移
+            Navigation.findNavController(v).navigate(R.id.homeFragment);
+        });
     }
 
     private void setupRecyclerView() {
@@ -146,4 +149,4 @@ public class QuestionCategoryFragment extends Fragment {
             }
         }
     }
-} 
+}

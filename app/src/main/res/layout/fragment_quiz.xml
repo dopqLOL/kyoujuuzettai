@@ -177,23 +177,24 @@
             </com.google.android.material.card.MaterialCardView>
 
 
-            <!-- 回答ボタン -->
+            <!-- 回答選択肢 (ボタン - 単一回答用) -->
             <LinearLayout
                 android:id="@+id/answer_buttons_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
-
+                android:orientation="vertical"
+                android:visibility="gone"
+                tools:visibility="visible">
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/answerBtn1"
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:paddingVertical="12dp"
                     android:text="@string/btn_answer"
                     android:textAppearance="?attr/textAppearanceButton"
-                    android:paddingVertical="12dp"
-                    android:layout_marginBottom="8dp"
                     tools:ignore="DuplicateSpeakableTextCheck" />
 
                 <com.google.android.material.button.MaterialButton
@@ -201,39 +202,100 @@
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/btn_answer"
-                    android:textAppearance="?attr/textAppearanceButton"
+                    android:layout_marginBottom="8dp"
                     android:paddingVertical="12dp"
-                    android:layout_marginBottom="8dp" />
+                    android:text="@string/btn_answer"
+                    android:textAppearance="?attr/textAppearanceButton" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/answerBtn3"
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/btn_answer"
-                    android:textAppearance="?attr/textAppearanceButton"
+                    android:layout_marginBottom="8dp"
                     android:paddingVertical="12dp"
-                    android:layout_marginBottom="8dp" />
+                    android:text="@string/btn_answer"
+                    android:textAppearance="?attr/textAppearanceButton" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/answerBtn4"
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:paddingVertical="12dp"
                     android:text="@string/btn_answer"
-                    android:textAppearance="?attr/textAppearanceButton"
-                    android:paddingVertical="12dp" />
+                    android:textAppearance="?attr/textAppearanceButton" />
             </LinearLayout>
+
+            <!-- 回答選択肢 (チェックボックス - 複数回答用) -->
+            <LinearLayout
+                android:id="@+id/answer_choices_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/answerCheck1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:paddingVertical="12dp"
+                    android:text="@string/btn_answer"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    tools:ignore="DuplicateSpeakableTextCheck" />
+
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/answerCheck2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:paddingVertical="12dp"
+                    android:text="@string/btn_answer"
+                    android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/answerCheck3"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:paddingVertical="12dp"
+                    android:text="@string/btn_answer"
+                    android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/answerCheck4"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingVertical="12dp"
+                    android:text="@string/btn_answer"
+                    android:textAppearance="?attr/textAppearanceBodyLarge" />
+            </LinearLayout>
+
+            <!-- 回答するボタン -->
+            <!-- 回答するボタン -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/submitAnswerButton"
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginTop="16dp"
+                android:text="回答する"
+                android:visibility="visible"
+                tools:visibility="visible"/>
+
         </LinearLayout>
     </ScrollView>
 
+    <!-- 次へボタン -->
     <!-- 次へボタン -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/next_button"
         style="@style/Widget.Material3.Button.TonalButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
         android:text="次へ"
         android:visibility="gone"
         app:icon="@drawable/ic_arrow_forward"

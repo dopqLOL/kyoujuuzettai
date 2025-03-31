@@ -23,10 +23,18 @@ public class StartFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        Button startButton = view.findViewById(R.id.startButton);
-        startButton.setOnClickListener(v -> {
-            // LoadingFragmentへナビゲーション
-            Navigation.findNavController(v).navigate(R.id.action_start_to_loading);
+        // Find the root layout
+        View rootView = view.findViewById(R.id.start_fragment_root);
+
+        // Set click listener on the root layout
+        rootView.setOnClickListener(v -> {
+            // Navigate to LoadingFragment
+            try {
+                Navigation.findNavController(v).navigate(R.id.action_start_to_loading);
+            } catch (Exception e) {
+                // Handle potential navigation errors (e.g., if already navigating)
+                android.util.Log.e("StartFragment", "Navigation failed", e);
+            }
         });
     }
-} 
+}

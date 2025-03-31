@@ -34,8 +34,8 @@ public class ChapterFragment extends Fragment {
     private void setupClickListeners() {
         // 戻るボタンのクリックリスナー
         binding.backButton.setOnClickListener(v -> {
-            // ナビゲーションコントローラーでポップバックスタック（前の画面に戻る）
-            Navigation.findNavController(v).popBackStack();
+            // HomeFragmentへ直接遷移
+            Navigation.findNavController(v).navigate(R.id.homeFragment);
         });
 
         // 各章カードのクリックリスナー
@@ -68,4 +68,4 @@ public class ChapterFragment extends Fragment {
         super.onDestroyView();
         binding = null;
     }
-} 
+}

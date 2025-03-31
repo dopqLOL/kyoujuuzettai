@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ContentfulJavasilver</string>
+    <string name="app_name">Java SE 17 Programmer I (1Z0-825-JPN) 対策アプリ</string>
     <string name="question_label">問題文</string>
     <string name="count_label">Q%d</string>
     <string name="btn_answer">選択肢</string>
@@ -16,4 +16,10 @@
     <string name="loading_status_error_download">エラー: データのダウンロードに失敗しました</string>
     <string name="loading_status_error_saving">エラー: データベースへの保存に失敗しました</string>
     <string name="loading_status_error_no_data">エラー: 保存するデータがありません</string>
+
+    <!-- Start Screen -->
+    <string name="start_prompt">画面をタップして開始</string>
+
+    <!-- Bottom Navigation -->
+    <string name="title_history">学習履歴</string>
 </resources>

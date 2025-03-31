@@ -27,20 +27,8 @@
             </intent-filter>
         </activity>
         
-        <!-- 既存のアクティビティ（徐々にフラグメントに移行） -->
-        <activity
-            android:name=".StartActivity"
-            android:exported="false" />
-        <activity
-            android:name=".LoadingActivity"
-            android:exported="false" />
-        <activity
-            android:name=".HomeActivity"
-            android:exported="false" />
-        <!-- <activity android:name=".QuizActivity" android:exported="false" />
-        <activity android:name=".ChapterSelectActivity" android:exported="false" />
-        <activity android:name=".CategorySelectActivity" android:exported="false" />
-        <activity android:name=".QuestionCategorySelectActivity" android:exported="false" /> -->
+        <!-- フラグメントベースのナビゲーションに移行 -->
+        
     </application>
 
 </manifest>

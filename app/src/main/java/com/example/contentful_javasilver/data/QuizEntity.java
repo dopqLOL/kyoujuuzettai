@@ -119,4 +119,29 @@ public class QuizEntity {
                 ", questionCategory='" + questionCategory + '\'' +
                 '}';
     }
-} 
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        QuizEntity that = (QuizEntity) o;
+        // Compare all relevant fields for content equality
+        return java.util.Objects.equals(qid, that.qid) &&
+               java.util.Objects.equals(chapter, that.chapter) &&
+               java.util.Objects.equals(category, that.category) &&
+               java.util.Objects.equals(questionCategory, that.questionCategory) &&
+               java.util.Objects.equals(difficulty, that.difficulty) &&
+               java.util.Objects.equals(code, that.code) &&
+               java.util.Objects.equals(questionText, that.questionText) &&
+               java.util.Objects.equals(choices, that.choices) &&
+               java.util.Objects.equals(answer, that.answer) &&
+               java.util.Objects.equals(explanation, that.explanation);
+        // updatedAt might change, so it's often excluded from equals/hashCode
+    }
+
+    @Override
+    public int hashCode() {
+        // Generate hash code based on the same fields used in equals
+        return java.util.Objects.hash(qid, chapter, category, questionCategory, difficulty, code, questionText, choices, answer, explanation);
+    }
+}

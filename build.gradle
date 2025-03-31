@@ -9,10 +9,11 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:8.7.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "androidx.navigation:navigation-safe-args-gradle-plugin:2.7.7" // Add Safe Args classpath
     }
 }
 
 // Gradle 8.xでのcleanタスクの新しい定義方法
 tasks.register('clean', Delete) {
     delete rootProject.buildDir
-} 
+}
