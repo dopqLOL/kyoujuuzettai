@@ -70,8 +70,43 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        NavigationUI.setupWithNavController(binding.bottomNavigation, navController);
-        Log.d("MainActivity", "Standard Bottom Navigation setup complete.");
+        NavigationUI.setupWithNavController(binding.bottomNavigation, navController); // Use standard setup
+        Log.d("MainActivity", "Standard Bottom Navigation setup complete."); // Log setup
+
+        // Manual setup for BottomNavigationView item selection is removed as NavigationUI handles it now.
+        /*
+        binding.bottomNavigation.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            NavDestination currentDestination = navController.getCurrentDestination();
+            int currentDestId = (currentDestination != null) ? currentDestination.getId() : -1;
+
+            // Prevent navigating to the same destination
+            if (itemId == currentDestId) {
+                Log.d("MainActivity", "Already on destination: " + item.getTitle());
+                return false; // Do not consume the event, allow default behavior (e.g., reselection animation) if any
+            }
+
+            // Define NavOptions for top-level destinations to clear back stack
+            NavOptions.Builder navOptionsBuilder = new NavOptions.Builder()
+                    .setLaunchSingleTop(true) // Avoid multiple copies of the same destination
+                    .setRestoreState(true); // Restore state when navigating back
+
+            // Determine the start destination of the graph or a suitable top-level destination
+            int startDestinationId = R.id.homeFragment;
+
+            // Pop up to the start destination of the graph to avoid building up back stack.
+            navOptionsBuilder.setPopUpTo(startDestinationId, false); // Pop up to home, but don't pop home itself
+
+            // Handle navigation for each item
+            try {
+                 navController.navigate(itemId, null, navOptionsBuilder.build());
+                 return true; // Event handled
+            } catch (IllegalArgumentException e) {
+                 Log.e("MainActivity", "Failed to navigate to destination ID: " + itemId, e);
+                 return false; // Indicate navigation failed or wasn't handled
+            }
+        });
+        */
 
         String apiKey = BuildConfig.CONTENTFUL_ACCESS_TOKEN;
         String spaceId = BuildConfig.CONTENTFUL_SPACE_ID;
