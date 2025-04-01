@@ -59,11 +59,8 @@ public class QuestionCategoryFragment extends Fragment {
     }
 
     private void setupViews() {
-        binding.categoryTitleText.setText(selectedCategory);
-        binding.backButton.setOnClickListener(v -> {
-            // HomeFragmentへ直接遷移
-            Navigation.findNavController(v).navigate(R.id.homeFragment);
-        });
+        // Category title is now handled by the Toolbar via nav_graph label
+        // Removed backButton.setOnClickListener as it's handled by MainActivity's Toolbar
     }
 
     private void setupRecyclerView() {

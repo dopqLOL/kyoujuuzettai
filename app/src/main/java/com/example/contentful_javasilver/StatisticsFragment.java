@@ -53,13 +53,7 @@ public class StatisticsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Setup Back Button
-        ImageButton backButton = view.findViewById(R.id.backButton);
-        backButton.setOnClickListener(v -> {
-            NavController navController = Navigation.findNavController(view);
-            // Navigate directly to HomeFragment
-            navController.navigate(R.id.homeFragment);
-        });
+        // Removed Back Button setup code as it's handled by MainActivity's Toolbar
 
         // Observe the LiveData from the ViewModel
         statisticsViewModel.getProblemStatistics().observe(getViewLifecycleOwner(), problemStats -> {

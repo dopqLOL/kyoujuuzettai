@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".QuizFragment"> <!-- Remove padding -->
+    tools:context=".QuizFragment">
 
     <!-- ローディングインジケーター -->
     <com.google.android.material.progressindicator.CircularProgressIndicator
@@ -20,62 +20,16 @@
         app:layout_constraintEnd_toEndOf="parent"
         tools:visibility="visible" />
 
-    <!-- クイズコンテンツグループ (ローディング中は非表示) -->
+
     <androidx.constraintlayout.widget.Group
         android:id="@+id/quiz_content_group"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:constraint_referenced_ids="headerLayout, content_scroll_view, next_button"
+        app:constraint_referenced_ids="content_scroll_view, next_button"
         android:visibility="visible"
         tools:visibility="visible"/>
 
-    <!-- Header Layout (Copied from fragment_question_category.xml) -->
-    <LinearLayout
-        android:id="@+id/headerLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <ImageButton
-            android:id="@+id/backButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="戻る"
-            android:padding="12dp"
-            android:src="@drawable/ic_arrow_back"
-            app:tint="@color/accent_color" />
-
-        <!-- QID表示ラベル (Replaced TextView with existing countLabel) -->
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/countLabel"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_weight="1"
-            android:text="@string/count_label"
-            style="@style/ScreenTitleTextStyle"
-            android:visibility="visible"
-            tools:visibility="visible"
-            tools:text="(1-1)"/>
-            <!-- Removed textAppearance, textColor, textSize, textStyle -->
-            tools:text="(1-1)"/>
-
-        <!-- Bookmark Button -->
-        <ImageButton
-            android:id="@+id/bookmarkButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="8dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="ブックマーク"
-            android:padding="12dp"
-            android:src="@drawable/ic_bookmark" />
-            <!-- app:tint="@color/accent_color" を削除 -->
-
-    </LinearLayout>
+    <!-- Removed custom header LinearLayout -->
 
     <!-- スクロール可能なコンテンツエリア -->
     <ScrollView
@@ -83,7 +37,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginBottom="8dp"
-        app:layout_constraintTop_toBottomOf="@id/headerLayout"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@id/next_button"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

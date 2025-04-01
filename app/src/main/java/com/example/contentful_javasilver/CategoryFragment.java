@@ -193,13 +193,10 @@ public class CategoryFragment extends Fragment {
     }
 
     private void setupViews() {
-        binding.chapterTitleText.setText("第" + chapterNumber + "章");
+        // Chapter title is now handled by the Toolbar via nav_graph label
         binding.chapterDescriptionText.setText(chapterTitle);
 
-        binding.backButton.setOnClickListener(v -> {
-            // HomeFragmentへ直接遷移
-            Navigation.findNavController(v).navigate(R.id.homeFragment);
-        });
+        // Removed backButton.setOnClickListener as it's handled by MainActivity's Toolbar
     }
 
     private void setupRecyclerView() {

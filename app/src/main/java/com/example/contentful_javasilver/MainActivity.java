@@ -12,8 +12,11 @@ import androidx.navigation.NavGraph;
 import androidx.navigation.NavOptions;
 import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
+import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
+import com.google.android.material.appbar.AppBarLayout;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.example.contentful_javasilver.data.QuizDao;
 import com.example.contentful_javasilver.data.QuizDatabase;
 import com.example.contentful_javasilver.data.QuizEntity;
@@ -39,7 +42,14 @@ public class MainActivity extends AppCompatActivity {
                 .findFragmentById(R.id.nav_host_fragment);
         navController = navHostFragment.getNavController();
 
-        // ボトムナビゲーションの表示制御とデバッグログ
+        MaterialToolbar toolbar = binding.toolbar;
+        setSupportActionBar(toolbar);
+        // Define top-level destinations for AppBarConfiguration
+        AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
+                R.id.homeFragment // Only Home is top-level now
+        ).build();
+        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
+
         navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
             int destId = destination.getId();
             String destLabel = destination.getLabel() != null ? destination.getLabel().toString() : "No Label";
@@ -50,80 +60,55 @@ public class MainActivity extends AppCompatActivity {
             Log.d("MainActivity", "Navigating from: " + currentLabel + " (" + currentId + ") to: " + destLabel + " (" + destId + ")");
 
             if (destId == R.id.startFragment || destId == R.id.loadingFragment) {
-                Log.d("MainActivity", "Hiding Bottom Navigation for " + destLabel);
+                Log.d("MainActivity", "Hiding Toolbar and Bottom Navigation for " + destLabel);
+                binding.appBarLayout.setVisibility(View.GONE);
                 binding.bottomNavigation.setVisibility(View.GONE);
             } else {
-                Log.d("MainActivity", "Showing Bottom Navigation for " + destLabel);
+                Log.d("MainActivity", "Showing Toolbar and Bottom Navigation for " + destLabel);
+                binding.appBarLayout.setVisibility(View.VISIBLE);
                 binding.bottomNavigation.setVisibility(View.VISIBLE);
             }
         });
 
-        // NavigationUI.setupWithNavController の呼び出しを削除し、完全に手動で制御する
-        Log.d("MainActivity", "Setting up Bottom Navigation manually");
-        binding.bottomNavigation.setOnItemSelectedListener(item -> {
-            int itemId = item.getItemId();
-            String itemTitle = item.getTitle().toString();
-            NavDestination currentDestination = navController.getCurrentDestination();
-            int currentId = currentDestination != null ? currentDestination.getId() : -1;
+        NavigationUI.setupWithNavController(binding.bottomNavigation, navController);
+        Log.d("MainActivity", "Standard Bottom Navigation setup complete.");
 
-            Log.d("MainActivity", "Manual Listener - Item selected: " + itemTitle + " (" + itemId + "), Current destination ID: " + currentId);
-
-            // 現在表示中の画面と同じアイテムが選択された場合は何もしない (または false を返す)
-            if (itemId == currentId) {
-                Log.d("MainActivity", "Manual Listener - Same item reselected (" + itemTitle + "). Doing nothing.");
-                return false; // falseを返すと選択状態のハイライトが更新されない場合があるので注意、trueでも良いかもしれない
-            }
-
-            // NavOptions を設定してバックスタックを管理
-            NavOptions.Builder builder = new NavOptions.Builder()
-                    .setLaunchSingleTop(true) // 既にスタックにある場合は新しいインスタンスを作らない
-                    .setRestoreState(true); // 状態を復元
-
-            // ルートグラフの開始デスティネーションまでポップアップする
-            // これにより、タブ切り替え時に前のタブのスタックがクリアされる挙動を模倣
-            // 注意: popUpToInclusive=false なので、開始デスティネーション自体は残る
-            // NavOptions options = builder.build(); // 一時的にオプションを削除
-
-            try {
-                // 選択されたアイテムIDにナビゲート (オプションなしで試す)
-                Log.d("MainActivity", "Manual Listener - Attempting navigate(" + itemId + ") without options.");
-                navController.navigate(itemId);
-                // navigate呼び出し直後の状態を確認 (デバッグ用)
-                NavDestination destAfterNavigate = navController.getCurrentDestination();
-                int idAfterNavigate = destAfterNavigate != null ? destAfterNavigate.getId() : -1;
-                String labelAfterNavigate = (destAfterNavigate != null && destAfterNavigate.getLabel() != null) ? destAfterNavigate.getLabel().toString() : "None";
-                Log.d("MainActivity", "Manual Listener - Destination immediately after navigate() call: " + labelAfterNavigate + " (" + idAfterNavigate + ")");
-
-                Log.d("MainActivity", "Manual Listener - navigate(" + itemId + ") called successfully.");
-                return true; // ナビゲーション呼び出し成功
-            } catch (IllegalArgumentException e) {
-                Log.e("MainActivity", "Manual Listener - Navigation failed for item " + itemTitle, e);
-                return false; // ナビゲーション失敗
-            }
-        });
-        Log.d("MainActivity", "Manual Bottom Navigation listener set.");
-
-
-        // BuildConfigからキーを取得し、安全に保存
         String apiKey = BuildConfig.CONTENTFUL_ACCESS_TOKEN;
         String spaceId = BuildConfig.CONTENTFUL_SPACE_ID;
         SecurePreferences.initializeSecureKeys(getApplicationContext(), apiKey, spaceId);
-
-        // カスタムリスナーは削除し、NavigationUI.setupWithNavController の標準動作に任せる (コメントは残しておく)
     }
 
-    // ツールバーのUpボタン（戻る矢印）の処理
     @Override
     public boolean onSupportNavigateUp() {
-        return navController.navigateUp() || super.onSupportNavigateUp();
+        Log.d("MainActivity", "onSupportNavigateUp called."); // Add log
+        NavDestination currentDestination = navController.getCurrentDestination();
+        if (currentDestination != null) { // Add null check log
+             Log.d("MainActivity", "Current Destination ID: " + currentDestination.getId() + ", Label: " + currentDestination.getLabel());
+        } else {
+             Log.d("MainActivity", "Current Destination is null.");
+        }
+
+        if (currentDestination != null &&
+                (currentDestination.getId() == R.id.navigation_history ||
+                 currentDestination.getId() == R.id.navigation_bookmark ||
+                 currentDestination.getId() == R.id.problemListFragment ||
+                 currentDestination.getId() == R.id.chapterFragment)) { // Also handle chapterFragment explicitly
+            Log.d("MainActivity", "Navigating to HomeFragment explicitly for ID: " + currentDestination.getId()); // Add log
+            // If on a bottom nav screen (other than home), problem list, or chapter, navigate to home
+            // Use NavOptions to pop up to homeFragment to avoid building up the back stack
+            NavOptions navOptions = new NavOptions.Builder()
+                    .setPopUpTo(R.id.homeFragment, true) // Pop back to home, inclusive means home itself is popped if already there, then re-added
+                    .build();
+            navController.navigate(R.id.homeFragment, null, navOptions);
+            return true; // Indicate navigation was handled
+        } else {
+            Log.d("MainActivity", "Using default navigateUp behavior."); // Add log
+            // Otherwise, use the default navigateUp behavior
+            AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
+                    R.id.homeFragment // Only Home is top-level
+            ).build();
+            return NavigationUI.navigateUp(navController, appBarConfiguration) || super.onSupportNavigateUp();
+        }
     }
 
-    // 物理的な戻るボタンの処理 (必要に応じてオーバーライド)
-    // デフォルトの動作で問題なければ不要
-    // @Override
-    // public void onBackPressed() {
-    //     if (!navController.navigateUp()) {
-    //         super.onBackPressed();
-    //     }
-    // }
 }

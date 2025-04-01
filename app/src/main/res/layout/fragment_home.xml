@@ -5,33 +5,7 @@
     android:layout_height="match_parent"
     android:background="@color/background_color">
 
-    <LinearLayout
-        android:id="@+id/headerLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Java Silver"
-            android:textColor="@color/text_primary"
-            android:textSize="32sp"
-            android:textStyle="bold" />
-
-        <ImageButton
-            android:id="@+id/settingsButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="設定"
-            android:padding="12dp"
-            android:src="@drawable/ic_settings"
-            app:tint="@color/accent_color" />
-    </LinearLayout>
+    <!-- Removed custom header LinearLayout -->
 
     <ScrollView
         android:id="@+id/scrollView"
@@ -39,7 +13,7 @@
         android:layout_height="0dp"
         android:fillViewport="true"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/headerLayout">
+        app:layout_constraintTop_toTopOf="parent"> <!-- Changed constraint -->
 
         <LinearLayout
             android:layout_width="match_parent"

@@ -32,14 +32,10 @@ public class ChapterFragment extends Fragment {
     }
 
     private void setupClickListeners() {
-        // 戻るボタンのクリックリスナー
-        binding.backButton.setOnClickListener(v -> {
-            // HomeFragmentへ直接遷移
-            Navigation.findNavController(v).navigate(R.id.homeFragment);
-        });
+        // Removed backButton.setOnClickListener as it's handled by MainActivity's Toolbar
 
         // 各章カードのクリックリスナー
-        binding.chapter1Card.setOnClickListener(v -> 
+        binding.chapter1Card.setOnClickListener(v ->
             navigateToCategoryFragment(v, 1, "Java の概要と簡単なJavaプログラムの作成"));
         binding.chapter2Card.setOnClickListener(v -> 
             navigateToCategoryFragment(v, 2, "Javaの基本データ型と文字列の操作"));

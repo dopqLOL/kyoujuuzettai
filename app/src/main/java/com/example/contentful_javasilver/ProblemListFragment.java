@@ -2,10 +2,14 @@ package com.example.contentful_javasilver;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu; // Import Menu
+import android.view.MenuInflater; // Import MenuInflater
+import android.view.MenuItem; // Import MenuItem
 import android.view.View;
 import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SearchView; // Import SearchView
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController; // Import NavController
@@ -27,6 +31,7 @@ public class ProblemListFragment extends Fragment implements ProblemListAdapter.
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         quizViewModel = new ViewModelProvider(requireActivity()).get(QuizViewModel.class);
+        setHasOptionsMenu(true); // Inform the fragment that it has an options menu
     }
 
     @Nullable
@@ -41,8 +46,7 @@ public class ProblemListFragment extends Fragment implements ProblemListAdapter.
         super.onViewCreated(view, savedInstanceState);
 
         setupRecyclerView();
-        setupSearchView();
-        setupBackButton(); // Add call to setup back button
+        // Removed setupSearchView() and setupBackButton() calls
         observeViewModel();
 
         // Load all problems initially
@@ -56,33 +60,7 @@ public class ProblemListFragment extends Fragment implements ProblemListAdapter.
         binding.recyclerViewProblems.setAdapter(adapter);
     }
 
-    private void setupSearchView() {
-        binding.searchViewProblems.setOnQueryTextListener(new androidx.appcompat.widget.SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                // Not needed, using onQueryTextChange for live filtering
-                return false;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                quizViewModel.setSearchQuery(newText);
-                return true;
-            }
-        });
-
-        binding.searchViewProblems.setOnCloseListener(() -> {
-            quizViewModel.setSearchQuery(""); // Clear search
-            return false;
-        });
-    }
-
-    private void setupBackButton() {
-        binding.backButton.setOnClickListener(v -> {
-            // Navigate directly to HomeFragment
-            NavHostFragment.findNavController(this).navigate(R.id.homeFragment);
-        });
-    }
+    // Removed setupSearchView() and setupBackButton() methods
 
     private void observeViewModel() {
         quizViewModel.getGroupedProblemList().observe(getViewLifecycleOwner(), problems -> {
@@ -109,6 +87,44 @@ public class ProblemListFragment extends Fragment implements ProblemListAdapter.
         navController.navigate(action);
     }
 
+    @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.problem_list_menu, menu);
+
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+        SearchView searchView = (SearchView) searchItem.getActionView();
+
+        if (searchView != null) {
+            searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                @Override
+                public boolean onQueryTextSubmit(String query) {
+                    return false; // Handle search query submission if needed
+                }
+
+                @Override
+                public boolean onQueryTextChange(String newText) {
+                    quizViewModel.setSearchQuery(newText); // Filter list based on text change
+                    return true;
+                }
+            });
+
+            searchView.setOnCloseListener(() -> {
+                quizViewModel.setSearchQuery(""); // Clear search when closed
+                return false;
+            });
+        }
+    }
+
+    // Handle menu item selection if necessary (though search is handled by action view)
+    // @Override
+    // public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+    //     if (item.getItemId() == R.id.action_search) {
+    //         // Action handled by SearchView itself
+    //         return true;
+    //     }
+    //     return super.onOptionsItemSelected(item);
+    // }
 
     @Override
     public void onDestroyView() {

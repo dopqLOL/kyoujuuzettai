@@ -4,6 +4,10 @@ import android.os.Bundle;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
+import android.os.Bundle;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -13,12 +17,15 @@ import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.util.TypedValue; // TypedValueをインポート
 import android.view.LayoutInflater;
+import android.view.Menu; // Import Menu
+import android.view.MenuInflater; // Import MenuInflater
+import android.view.MenuItem; // Import MenuItem
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.ImageButton; // Import ImageButton
+// import android.widget.ImageButton; // Removed import
 import android.widget.Toast;
 
 import androidx.annotation.ColorInt; // ColorIntをインポート
@@ -50,7 +57,13 @@ public class QuizFragment extends Fragment implements View.OnClickListener, Comp
     private String category;
     private boolean isMultipleChoice = false;
     private boolean isRandomMode = false;
-    private ImageButton bookmarkButton; // Add reference for bookmark button
+    // private ImageButton bookmarkButton; // Removed reference for bookmark button
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true); // Inform the fragment that it has an options menu
+    }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -76,8 +89,7 @@ public class QuizFragment extends Fragment implements View.OnClickListener, Comp
             Log.d(TAG, "Arguments received - qid: " + initialQid + ", isRandomMode: " + isRandomMode);
         }
 
-        // Find bookmark button
-        bookmarkButton = binding.bookmarkButton;
+        // Removed finding bookmark button
 
         // リストの初期化
         initializeAnswerControlsLists();
@@ -105,11 +117,11 @@ public class QuizFragment extends Fragment implements View.OnClickListener, Comp
             if (quiz != null) {
                 Log.d(TAG, "Observer received new quiz: " + quiz.getQid() + ", Bookmarked: " + quiz.isBookmarked());
                 updateQuizUI(quiz);
-                updateBookmarkIcon(quiz.isBookmarked()); // Update bookmark icon based on status
+                requireActivity().invalidateOptionsMenu(); // Update menu icons based on bookmark status
             } else {
                 Log.w(TAG, "Observer received null quiz");
                 // クイズがない場合の処理（例：ローディング表示、エラー表示など）
-                updateBookmarkIcon(false); // Reset icon if quiz is null
+                requireActivity().invalidateOptionsMenu(); // Ensure menu is updated even if quiz is null
             }
         });
 
@@ -161,8 +173,8 @@ public class QuizFragment extends Fragment implements View.OnClickListener, Comp
         // その他のボタン
         binding.submitAnswerButton.setOnClickListener(this);
         binding.nextButton.setOnClickListener(this);
-        binding.backButton.setOnClickListener(this);
-        bookmarkButton.setOnClickListener(this); // Set listener for bookmark button
+        // binding.backButton.setOnClickListener(this); // Removed back button listener
+        // bookmarkButton.setOnClickListener(this); // Removed bookmark button listener
     }
 
     private void updateQuizUI(QuizEntity quiz) {
@@ -178,8 +190,7 @@ public class QuizFragment extends Fragment implements View.OnClickListener, Comp
         isMultipleChoice = rightAnswers != null && rightAnswers.size() > 1;
         Log.d(TAG, "Is multiple choice: " + isMultipleChoice + " (Answer count: " + (rightAnswers != null ? rightAnswers.size() : "null") + ")");
 
-        // qid表示
-        binding.countLabel.setText(quiz.getQid());
+        // QID display is now handled by the Toolbar via nav_graph label
 
         // 質問文
         binding.questionLabel.setText(quiz.getQuestionText());
@@ -375,15 +386,15 @@ public class QuizFragment extends Fragment implements View.OnClickListener, Comp
             Log.d(TAG, "Next button clicked, isRandomMode: " + isRandomMode);
             // isRandomMode の値に応じて次のクイズをロード
             viewModel.loadNextQuiz(isRandomMode);
-        } else if (id == R.id.backButton) {
-            Log.d(TAG, "Back button clicked");
-            try {
-            // Navigate directly to HomeFragment instead of just popping the back stack
-            Navigation.findNavController(requireView()).navigate(R.id.homeFragment);
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to navigate to home", e);
-        }
-    } else if (id == R.id.submitAnswerButton && isMultipleChoice) {
+        // } else if (id == R.id.backButton) { // Removed back button handling
+            // Log.d(TAG, "Back button clicked");
+            // try {
+            // // Navigate directly to HomeFragment instead of just popping the back stack
+            // Navigation.findNavController(requireView()).navigate(R.id.homeFragment);
+            // } catch (Exception e) {
+            // Log.e(TAG, "Failed to navigate to home", e);
+            // }
+        } else if (id == R.id.submitAnswerButton && isMultipleChoice) {
             // 複数回答の「回答する」ボタン
             Log.d(TAG, "Submit Answer button clicked (Multiple Choice)");
             List<Integer> selectedIndices = getSelectedIndices();
@@ -402,16 +413,16 @@ public class QuizFragment extends Fragment implements View.OnClickListener, Comp
             binding.submitAnswerButton.setVisibility(View.GONE);
             binding.nextButton.setVisibility(View.VISIBLE);
 
-        } else if (id == R.id.bookmarkButton) {
-            // ブックマークボタンのクリック処理
-            Log.d(TAG, "Bookmark button clicked");
-            QuizEntity currentQuizForBookmark = viewModel.getCurrentQuiz().getValue();
-            if (currentQuizForBookmark != null) {
-                viewModel.toggleBookmarkStatus(currentQuizForBookmark); // ViewModelのメソッドを呼び出す
-                // アイコンの更新はObserverで行われる
-            } else {
-                Log.w(TAG, "Cannot toggle bookmark, current quiz is null");
-            }
+        // } else if (id == R.id.bookmarkButton) { // Removed bookmark button handling
+            // // ブックマークボタンのクリック処理
+            // Log.d(TAG, "Bookmark button clicked");
+            // QuizEntity currentQuizForBookmark = viewModel.getCurrentQuiz().getValue();
+            // if (currentQuizForBookmark != null) {
+                // viewModel.toggleBookmarkStatus(currentQuizForBookmark); // ViewModelのメソッドを呼び出す
+                // // アイコンの更新はObserverで行われる
+            // } else {
+                // Log.w(TAG, "Cannot toggle bookmark, current quiz is null");
+            // }
         } else if (!isMultipleChoice && (id == R.id.answerBtn1 || id == R.id.answerBtn2 || id == R.id.answerBtn3 || id == R.id.answerBtn4)) {
             // 単一回答の回答ボタン
             Button answerBtn = (Button) view;
@@ -439,28 +450,54 @@ public class QuizFragment extends Fragment implements View.OnClickListener, Comp
          }
      }
 
-    // ブックマークアイコンの状態を更新するメソッド
-    private void updateBookmarkIcon(boolean isBookmarked) {
-        Log.d(TAG, "updateBookmarkIcon called with isBookmarked: " + isBookmarked); // Add log
-        if (bookmarkButton != null) {
+    // Removed updateBookmarkIcon method
+
+    @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.quiz_menu, menu);
+        Log.d(TAG, "onCreateOptionsMenu called");
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(@NonNull Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        MenuItem bookmarkItem = menu.findItem(R.id.action_bookmark);
+        if (bookmarkItem != null) {
+            QuizEntity currentQuiz = viewModel.getCurrentQuiz().getValue();
+            boolean isBookmarked = currentQuiz != null && currentQuiz.isBookmarked();
+            Log.d(TAG, "onPrepareOptionsMenu - isBookmarked: " + isBookmarked);
             if (isBookmarked) {
-                Log.d(TAG, "Setting filled bookmark icon"); // Add log
-                // ブックマークされている場合は塗りつぶしアイコンを設定し、色を付ける
-                bookmarkButton.setImageResource(R.drawable.ic_bookmark_filled);
-                bookmarkButton.setColorFilter(ContextCompat.getColor(requireContext(), R.color.accent_color)); // Set tint when bookmarked
-                bookmarkButton.invalidate(); // Force redraw
+                bookmarkItem.setIcon(R.drawable.ic_bookmark_filled); // Filled icon
+                bookmarkItem.getIcon().setTint(ContextCompat.getColor(requireContext(), R.color.accent_color)); // Tint when bookmarked
             } else {
-                Log.d(TAG, "Setting outline bookmark icon (default color)"); // Add log
-                // ブックマークされていない場合はデフォルト色の枠線アイコンを設定し、デフォルトの色を明示的に設定
-                bookmarkButton.setImageResource(R.drawable.ic_bookmark_default_color); // Use the new default color icon
-                int defaultColor = getThemeColor(android.R.attr.colorControlNormal); // Get default icon color from theme
-                bookmarkButton.setColorFilter(defaultColor); // Explicitly set default color
-                bookmarkButton.invalidate(); // Force redraw
+                bookmarkItem.setIcon(R.drawable.ic_bookmark_default_color); // Outline icon
+                // Reset tint to default (or remove tint)
+                 int defaultColor = getThemeColor(android.R.attr.colorControlNormal);
+                 bookmarkItem.getIcon().setTint(defaultColor);
             }
         } else {
-            Log.w(TAG, "bookmarkButton is null in updateBookmarkIcon"); // Add log for null case
+             Log.w(TAG, "Bookmark menu item not found in onPrepareOptionsMenu");
         }
     }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.action_bookmark) {
+            Log.d(TAG, "Bookmark menu item selected");
+            QuizEntity currentQuiz = viewModel.getCurrentQuiz().getValue();
+            if (currentQuiz != null) {
+                viewModel.toggleBookmarkStatus(currentQuiz);
+                requireActivity().invalidateOptionsMenu(); // Request menu update to reflect changes
+                return true;
+            } else {
+                Log.w(TAG, "Cannot toggle bookmark, current quiz is null");
+                return false;
+            }
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
 
     // Helper method to get color from theme attribute
     @ColorInt

@@ -3,6 +3,9 @@ package com.example.contentful_javasilver;
 import android.os.Bundle;
 import android.util.Log; // Import Log
 import android.view.LayoutInflater;
+import android.view.Menu; // Re-import Menu
+import android.view.MenuInflater; // Re-import MenuInflater
+import android.view.MenuItem; // Re-import MenuItem
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast; // Import Toast
@@ -30,6 +33,7 @@ public class HomeFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
+        setHasOptionsMenu(true); // Re-enable options menu for this fragment
     }
 
     @Nullable
@@ -104,10 +108,32 @@ public class HomeFragment extends Fragment {
             navController.navigate(R.id.action_homeFragment_to_problemListFragment)
         );
 
-        // 設定ボタンのクリックリスナー
-        binding.settingsButton.setOnClickListener(v ->
-            navController.navigate(R.id.settingsFragment)
-        );
+        // Removed settingsButton click listener
+    }
+
+    // Re-add onCreateOptionsMenu and onOptionsItemSelected methods
+    @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.main_menu, menu); // Inflate the menu with the settings icon
+        Log.d(TAG, "onCreateOptionsMenu called for HomeFragment");
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        Log.d(TAG, "onOptionsItemSelected called in HomeFragment with item ID: " + item.getItemId());
+        if (item.getItemId() == R.id.action_settings) {
+            // Navigate to SettingsFragment when settings icon is clicked
+            try {
+                Navigation.findNavController(requireView()).navigate(R.id.settingsFragment);
+                Log.d(TAG, "Navigating to SettingsFragment from HomeFragment menu");
+                return true;
+            } catch (Exception e) {
+                Log.e(TAG, "Navigation to SettingsFragment from menu failed", e);
+                return false;
+            }
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override

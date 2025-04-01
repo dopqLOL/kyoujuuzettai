@@ -8,7 +8,7 @@
     <fragment
         android:id="@+id/homeFragment"
         android:name="com.example.contentful_javasilver.HomeFragment"
-        android:label="ホーム"
+        android:label="Java Silver"
         tools:layout="@layout/fragment_home">
         <action
             android:id="@+id/action_homeFragment_to_chapterFragment"

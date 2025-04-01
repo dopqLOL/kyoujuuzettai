@@ -39,12 +39,7 @@ public class HistoryFragment extends Fragment {
 
         NavController navController = Navigation.findNavController(view);
 
-        // Setup Back Button
-        ImageButton backButton = view.findViewById(R.id.backButton);
-        backButton.setOnClickListener(v -> {
-            // Navigate directly to HomeFragment
-            navController.navigate(R.id.homeFragment);
-        });
+        // Removed Back Button setup code as it's handled by MainActivity's Toolbar
 
         // Setup Navigation Buttons
         Button buttonStatistics = view.findViewById(R.id.button_statistics);
