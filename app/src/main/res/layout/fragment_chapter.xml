@@ -28,10 +28,9 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="章を選択"
-            android:textColor="@color/text_primary"
-            android:textSize="33sp"
-            android:textStyle="bold"
+            style="@style/ScreenTitleTextStyle"
             android:layout_marginStart="8dp" />
+            <!-- Removed textColor, textSize, textStyle -->
     </LinearLayout>
 
     <ScrollView
@@ -269,4 +268,4 @@
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
     </ScrollView>
-</androidx.constraintlayout.widget.ConstraintLayout> 
+</androidx.constraintlayout.widget.ConstraintLayout>

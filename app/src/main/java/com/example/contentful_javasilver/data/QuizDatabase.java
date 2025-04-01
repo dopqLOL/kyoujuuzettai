@@ -6,14 +6,25 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import androidx.room.TypeConverters;
+import androidx.room.migration.Migration; // Add import
+import androidx.sqlite.db.SupportSQLiteDatabase; // Add import
+import androidx.annotation.NonNull; // Add import
 
 /**
  * QuizデータベースのRoomデータベースクラス
  */
-@Database(entities = {QuizEntity.class, QuizHistory.class}, version = 13, exportSchema = false) // Changed ProblemStats to QuizHistory and incremented version
+@Database(entities = {QuizEntity.class, QuizHistory.class}, version = 14, exportSchema = false) // Increment version to 14
 @TypeConverters({QuizEntity.Converters.class})
 public abstract class QuizDatabase extends RoomDatabase {
     private static volatile QuizDatabase INSTANCE;
+
+    // Migration from version 13 to 14: Add isBookmarked column
+    static final Migration MIGRATION_13_14 = new Migration(13, 14) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE quizzes ADD COLUMN isBookmarked INTEGER NOT NULL DEFAULT 0");
+        }
+    };
 
     /**
      * QuizDaoを取得するための抽象メソッド
@@ -35,8 +46,8 @@ public abstract class QuizDatabase extends RoomDatabase {
                             context.getApplicationContext(),
                             QuizDatabase.class,
                             "quiz_database")
-                            // スキーマバージョンが変更されたときに既存のデータベースを削除して再作成
-                            .fallbackToDestructiveMigration()
+                            // Add migration from 13 to 14
+                            .addMigrations(MIGRATION_13_14)
                             .build();
                 }
             }

@@ -55,6 +55,29 @@ public interface QuizDao {
     @Query("DELETE FROM quizzes")
     void deleteAll();
 
+    // --- Methods for Bookmarks ---
+
+    /**
+     * Updates the bookmark status for a specific quiz.
+     * @param qid The ID of the quiz to update.
+     * @param isBookmarked The new bookmark status.
+     */
+    @Query("UPDATE quizzes SET isBookmarked = :isBookmarked WHERE qid = :qid")
+    void updateBookmarkStatus(String qid, boolean isBookmarked);
+
+    /**
+     * Retrieves all bookmarked quizzes, ordered by QID.
+     * @return A LiveData list of bookmarked QuizEntity objects.
+     */
+    @Query("SELECT * FROM quizzes WHERE isBookmarked = 1 ORDER BY qid ASC")
+    LiveData<List<QuizEntity>> getBookmarkedQuizzes();
+
+    /**
+     * Resets the bookmark status for all quizzes to false.
+     */
+    @Query("UPDATE quizzes SET isBookmarked = 0")
+    void resetAllBookmarks();
+
     // --- Methods for QuizHistory ---
 
     /**

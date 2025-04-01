@@ -137,4 +137,14 @@
         android:label="学習統計"
         tools:layout="@layout/fragment_statistics" />
 
+    <fragment
+        android:id="@+id/navigation_bookmark"
+        android:name="com.example.contentful_javasilver.BookmarkFragment"
+        android:label="@string/title_bookmark"
+        tools:layout="@layout/fragment_bookmark" >
+        <action
+            android:id="@+id/action_bookmarkFragment_to_quizFragment"
+            app:destination="@id/quizFragment" />
+    </fragment>
+
 </navigation>

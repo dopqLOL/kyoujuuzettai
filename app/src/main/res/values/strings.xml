@@ -22,4 +22,5 @@
 
     <!-- Bottom Navigation -->
     <string name="title_history">学習履歴</string>
+    <string name="title_bookmark">ブックマーク</string> <!-- Add bookmark title -->
 </resources>

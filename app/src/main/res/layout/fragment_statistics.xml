@@ -33,9 +33,8 @@
             android:layout_marginStart="8dp"
             android:layout_weight="1"
             android:text="学習統計"
-            android:textColor="@color/text_primary"
-            android:textSize="24sp"
-            android:textStyle="bold" />
+            style="@style/ScreenTitleTextStyle" />
+            <!-- Removed textColor, textSize, textStyle -->
     </LinearLayout>
 
     <!-- Existing Header for List Columns -->

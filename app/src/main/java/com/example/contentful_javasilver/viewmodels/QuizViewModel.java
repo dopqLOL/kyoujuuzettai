@@ -13,7 +13,7 @@ import com.contentful.java.cda.CDAEntry;
 import com.example.contentful_javasilver.AsyncHelperCoroutines;
 import com.example.contentful_javasilver.ContentfulGetApi;
 import com.example.contentful_javasilver.DatabaseHelperCoroutines;
-// import com.example.contentful_javasilver.data.ProblemStats; // No longer needed
+import com.example.contentful_javasilver.data.QuizDao; // Import QuizDao
 import com.example.contentful_javasilver.data.QuizHistory; // Import QuizHistory
 import com.example.contentful_javasilver.data.QuizDatabase;
 import com.example.contentful_javasilver.data.QuizEntity;
@@ -36,6 +36,7 @@ import kotlin.Unit;
 public class QuizViewModel extends AndroidViewModel {
     private static final String TAG = "QuizViewModel";
     private final QuizDatabase database;
+    private final QuizDao quizDao; // Add QuizDao field
     private final DatabaseHelperCoroutines databaseHelper;
     private final AsyncHelperCoroutines asyncHelper;
     private final ContentfulGetApi contentfulApi;
@@ -72,6 +73,7 @@ public class QuizViewModel extends AndroidViewModel {
     public QuizViewModel(@NonNull Application application) {
         super(application);
         database = QuizDatabase.getDatabase(application);
+        quizDao = database.quizDao(); // Initialize QuizDao
 
         // 安全にAPIキーを取得
         String apiKey = SecurePreferences.getContentfulApiKey(application);
@@ -92,6 +94,8 @@ public class QuizViewModel extends AndroidViewModel {
 
         // currentQidIndex は不要になったため削除
         // currentQuiz.addSource(currentQidIndex, index -> updateCurrentQuiz());
+
+        // resetAllBookmarkStates(); // Removed: Do not reset bookmarks on every ViewModel creation
     }
 
     // currentQuizを更新するヘルパーメソッド
@@ -135,7 +139,7 @@ public class QuizViewModel extends AndroidViewModel {
         isLoading.setValue(true);
         executor.execute(() -> {
             try {
-                List<QuizEntity> quizzes = database.quizDao().getAllQuizzesSorted(); // Assume this DAO method exists
+                List<QuizEntity> quizzes = quizDao.getAllQuizzesSorted(); // Use quizDao field
                 allQuizzes.postValue(quizzes);
                 Log.d(TAG, "Loaded " + (quizzes != null ? quizzes.size() : 0) + " problems for the list.");
             } catch (Exception e) {
@@ -257,7 +261,7 @@ public class QuizViewModel extends AndroidViewModel {
         executor.execute(() -> {
             try {
                 // DAOの同期メソッドを使用してカテゴリでフィルタリングし、ランダムに **1件** 取得
-                List<QuizEntity> quizzes = database.quizDao().getRandomQuizzesByCategorySync(category, 1);
+                List<QuizEntity> quizzes = quizDao.getRandomQuizzesByCategorySync(category, 1); // Use quizDao field
                 Log.d(TAG, "Loaded " + quizzes.size() + " random quiz for category: " + category);
 
                 if (quizzes.isEmpty()) {
@@ -289,7 +293,7 @@ public class QuizViewModel extends AndroidViewModel {
         loadedQuizzes.postValue(new ArrayList<>()); // 表示リストもクリア
         executor.execute(() -> {
             try {
-                List<QuizEntity> quizzes = database.quizDao().getQuizzesByQid(qid); // qidで取得
+                List<QuizEntity> quizzes = quizDao.getQuizzesByQid(qid); // Use quizDao field
                 Log.d(TAG, "Loaded " + quizzes.size() + " quiz for qid: " + qid);
                 if (quizzes.isEmpty()) {
                     Log.w(TAG, "No quiz found in DB for qid: " + qid + ". Fetching from Contentful might be needed or show error.");
@@ -344,9 +348,10 @@ public class QuizViewModel extends AndroidViewModel {
                             continue;
                         }
 
+                        // Create QuizEntity with default isBookmarked = false
                         QuizEntity entity = new QuizEntity(
                             qid, chapter, category, questionCategory, difficulty, code,
-                            questionText, choices, intAnswers, explanation
+                            questionText, choices, intAnswers, explanation, false // Pass default bookmark status
                         );
                         entities.add(entity);
                     } catch (Exception e) {
@@ -403,7 +408,7 @@ public class QuizViewModel extends AndroidViewModel {
         loadedQuizzes.setValue(new ArrayList<>());
         executor.execute(() -> {
             try {
-                List<QuizEntity> quizzes = database.quizDao().getRandomQuizzesSync(1); // 常に1件取得
+                List<QuizEntity> quizzes = quizDao.getRandomQuizzesSync(1); // Use quizDao field, always 1
                 Log.d(TAG, "Loaded " + quizzes.size() + " random quiz.");
                 if (quizzes.isEmpty()) {
                     Log.d(TAG, "No random quiz found in DB. Fetching from Contentful.");
@@ -567,7 +572,7 @@ public class QuizViewModel extends AndroidViewModel {
         isLoading.setValue(true); // ローディング開始
         executor.execute(() -> {
             try {
-                List<QuizEntity> randomQuizzes = database.quizDao().getRandomQuizzesSync(1);
+                List<QuizEntity> randomQuizzes = quizDao.getRandomQuizzesSync(1); // Use quizDao field
                 if (randomQuizzes != null && !randomQuizzes.isEmpty()) {
                     String qid = randomQuizzes.get(0).getQid();
                     // ランダムIDを更新すると同時に、そのIDでクイズをロードする
@@ -606,11 +611,65 @@ public class QuizViewModel extends AndroidViewModel {
             try {
                 long currentTime = System.currentTimeMillis();
                 QuizHistory historyRecord = new QuizHistory(problemId, isCorrect, currentTime);
-                database.quizDao().insertHistory(historyRecord);
+                quizDao.insertHistory(historyRecord); // Use quizDao field
                 Log.d(TAG, "Inserted quiz history for problem: " + problemId + ", Correct: " + isCorrect);
             } catch (Exception e) {
                 Log.e(TAG, "Error recording answer history for problem: " + problemId, e);
                 // Optionally post an error message to LiveData if needed
+            }
+        });
+    }
+
+    /**
+     * Toggles the bookmark status of the given quiz entity.
+     * Updates the database and the currentQuiz LiveData.
+     * @param quiz The QuizEntity to toggle the bookmark status for.
+     */
+    public void toggleBookmarkStatus(QuizEntity quiz) {
+        if (quiz == null || quiz.getQid() == null) {
+            Log.w(TAG, "Cannot toggle bookmark status, quiz or qid is null.");
+            return;
+        }
+        // Toggle the status
+        boolean currentStatus = quiz.isBookmarked(); // Get current status before toggling
+        boolean newBookmarkStatus = !currentStatus;
+        Log.d(TAG, "toggleBookmarkStatus called for qid: " + quiz.getQid() + ". Current: " + currentStatus + ", New: " + newBookmarkStatus);
+        quiz.setBookmarked(newBookmarkStatus); // Update local object state first
+
+        // Update the database in the background
+        executor.execute(() -> {
+            try {
+                Log.d(TAG, "Executing DB update for qid: " + quiz.getQid() + " with status: " + newBookmarkStatus);
+                quizDao.updateBookmarkStatus(quiz.getQid(), newBookmarkStatus);
+                Log.d(TAG, "DB update successful for qid: " + quiz.getQid());
+
+                // Update the LiveData on the main thread after DB update
+                // Post the updated quiz object to ensure the observer gets the latest state
+                // Note: loadedQuizzes holds a list, we need to update the object within it or post a new list
+                List<QuizEntity> currentList = loadedQuizzes.getValue(); // Get current list (should have 1 item)
+                if (currentList != null && !currentList.isEmpty()) {
+                    // Create a new list containing the *updated* quiz object
+                    List<QuizEntity> updatedList = new ArrayList<>();
+                    updatedList.add(quiz); // Add the quiz object whose state was toggled
+                    Log.d(TAG, "Posting updated list to LiveData for qid: " + quiz.getQid());
+                    loadedQuizzes.postValue(updatedList); // Post the new list
+                } else {
+                     Log.w(TAG, "loadedQuizzes was null or empty when trying to post update for qid: " + quiz.getQid());
+                }
+
+            } catch (Exception e) {
+                Log.e(TAG, "Error updating bookmark status in DB for qid: " + quiz.getQid(), e);
+                errorMessage.postValue("ブックマーク状態の更新に失敗しました。");
+                // Revert the local change if DB update fails
+                quiz.setBookmarked(currentStatus); // Revert local state to original on error
+                 List<QuizEntity> currentListOnError = loadedQuizzes.getValue();
+                 if (currentListOnError != null && !currentListOnError.isEmpty()) {
+                     // Post the reverted state back to LiveData
+                     List<QuizEntity> revertedList = new ArrayList<>();
+                     revertedList.add(quiz);
+                     loadedQuizzes.postValue(revertedList);
+                     Log.d(TAG, "Reverted local state and posted to LiveData due to DB error for qid: " + quiz.getQid());
+                 }
             }
         });
     }
@@ -625,5 +684,24 @@ public class QuizViewModel extends AndroidViewModel {
         databaseHelper.cleanup();
         asyncHelper.cleanup();
         // executorのシャットダウンも考慮
+    }
+
+    /**
+     * Resets the bookmark state for all quizzes in the database to false.
+     * This should typically be called once, e.g., during initial setup or from settings.
+     */
+    private void resetAllBookmarkStates() {
+        executor.execute(() -> {
+            try {
+                Log.d(TAG, "Executing resetAllBookmarks in database...");
+                quizDao.resetAllBookmarks();
+                Log.d(TAG, "Database bookmark reset successful.");
+                // Optionally, reload data if needed after reset, though initial load might handle it.
+                // loadAllProblems(); // Example: Reload problem list if displayed
+            } catch (Exception e) {
+                Log.e(TAG, "Error resetting bookmark states in database", e);
+                errorMessage.postValue("ブックマーク状態のリセットに失敗しました。");
+            }
+        });
     }
 }

@@ -180,7 +180,7 @@ public class LoadingFragment extends Fragment {
 
                 QuizEntity entity = new QuizEntity(
                         qid, chapter, category, questionCategory, difficulty, code,
-                        questionText, choices, intAnswers, explanation
+                        questionText, choices, intAnswers, explanation, false // Add default bookmark status
                 );
                 entities.add(entity);
             } catch (Exception e) {

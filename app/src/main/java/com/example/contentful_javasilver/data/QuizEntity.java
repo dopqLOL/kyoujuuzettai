@@ -33,10 +33,11 @@ public class QuizEntity {
 
     private String explanation;
     private long updatedAt;
+    private boolean isBookmarked; // Add bookmark field
 
     public QuizEntity(String qid, String chapter, String category, String questionCategory,
                       String difficulty, String code, String questionText,
-                      List<String> choices, List<Integer> answer, String explanation) {
+                      List<String> choices, List<Integer> answer, String explanation, boolean isBookmarked) { // Add isBookmarked to constructor
         this.qid = qid;
         this.chapter = chapter;
         this.category = category;
@@ -48,6 +49,7 @@ public class QuizEntity {
         this.answer = answer;
         this.explanation = explanation;
         this.updatedAt = System.currentTimeMillis();
+        this.isBookmarked = isBookmarked; // Initialize bookmark field
     }
 
     // Getters and Setters
@@ -74,6 +76,8 @@ public class QuizEntity {
     public void setExplanation(String explanation) { this.explanation = explanation; }
     public long getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(long updatedAt) { this.updatedAt = updatedAt; }
+    public boolean isBookmarked() { return isBookmarked; } // Getter for bookmark
+    public void setBookmarked(boolean bookmarked) { isBookmarked = bookmarked; } // Setter for bookmark
 
     // Type Converters for Room
     public static class Converters {
@@ -135,13 +139,14 @@ public class QuizEntity {
                java.util.Objects.equals(questionText, that.questionText) &&
                java.util.Objects.equals(choices, that.choices) &&
                java.util.Objects.equals(answer, that.answer) &&
-               java.util.Objects.equals(explanation, that.explanation);
+               java.util.Objects.equals(explanation, that.explanation) &&
+               isBookmarked == that.isBookmarked; // Include bookmark in equals
         // updatedAt might change, so it's often excluded from equals/hashCode
     }
 
     @Override
     public int hashCode() {
         // Generate hash code based on the same fields used in equals
-        return java.util.Objects.hash(qid, chapter, category, questionCategory, difficulty, code, questionText, choices, answer, explanation);
+        return java.util.Objects.hash(qid, chapter, category, questionCategory, difficulty, code, questionText, choices, answer, explanation, isBookmarked); // Include bookmark in hashCode
     }
 }

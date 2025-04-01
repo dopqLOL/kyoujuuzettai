@@ -56,13 +56,24 @@
             android:layout_marginStart="8dp"
             android:layout_weight="1"
             android:text="@string/count_label"
-            android:textAppearance="?attr/textAppearanceTitleSmall"
-            android:textColor="@color/text_primary"
-            android:textSize="33sp"
-            android:textStyle="bold"
+            style="@style/ScreenTitleTextStyle"
             android:visibility="visible"
             tools:visibility="visible"
             tools:text="(1-1)"/>
+            <!-- Removed textAppearance, textColor, textSize, textStyle -->
+            tools:text="(1-1)"/>
+
+        <!-- Bookmark Button -->
+        <ImageButton
+            android:id="@+id/bookmarkButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="ブックマーク"
+            android:padding="12dp"
+            android:src="@drawable/ic_bookmark" />
+            <!-- app:tint="@color/accent_color" を削除 -->
 
     </LinearLayout>
 

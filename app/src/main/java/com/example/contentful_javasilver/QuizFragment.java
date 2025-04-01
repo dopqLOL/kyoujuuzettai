@@ -11,12 +11,14 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
+import android.util.TypedValue; // TypedValueをインポート
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.CheckBox; // CheckBoxをインポート
-import android.widget.CompoundButton; // CompoundButtonをインポート
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.ImageButton; // Import ImageButton
 import android.widget.Toast;
 
 import androidx.annotation.ColorInt; // ColorIntをインポート
@@ -27,7 +29,6 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 
-import com.example.contentful_javasilver.data.QuizEntity;
 import com.example.contentful_javasilver.data.QuizEntity;
 import com.example.contentful_javasilver.databinding.FragmentQuizBinding;
 import com.example.contentful_javasilver.viewmodels.QuizViewModel;
@@ -47,8 +48,9 @@ public class QuizFragment extends Fragment implements View.OnClickListener, Comp
     private List<Button> answerButtons; // Buttonのリストを追加
     private String initialQid;
     private String category;
-    private boolean isMultipleChoice = false; // 回答形式フラグ
-    private boolean isRandomMode = false; // ランダムモードフラグ
+    private boolean isMultipleChoice = false;
+    private boolean isRandomMode = false;
+    private ImageButton bookmarkButton; // Add reference for bookmark button
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -74,6 +76,9 @@ public class QuizFragment extends Fragment implements View.OnClickListener, Comp
             Log.d(TAG, "Arguments received - qid: " + initialQid + ", isRandomMode: " + isRandomMode);
         }
 
+        // Find bookmark button
+        bookmarkButton = binding.bookmarkButton;
+
         // リストの初期化
         initializeAnswerControlsLists();
 
@@ -98,11 +103,13 @@ public class QuizFragment extends Fragment implements View.OnClickListener, Comp
         // 現在のクイズの監視
         viewModel.getCurrentQuiz().observe(getViewLifecycleOwner(), quiz -> {
             if (quiz != null) {
-                Log.d(TAG, "Observer received new quiz: " + quiz.getQid());
+                Log.d(TAG, "Observer received new quiz: " + quiz.getQid() + ", Bookmarked: " + quiz.isBookmarked());
                 updateQuizUI(quiz);
+                updateBookmarkIcon(quiz.isBookmarked()); // Update bookmark icon based on status
             } else {
                 Log.w(TAG, "Observer received null quiz");
                 // クイズがない場合の処理（例：ローディング表示、エラー表示など）
+                updateBookmarkIcon(false); // Reset icon if quiz is null
             }
         });
 
@@ -120,20 +127,10 @@ public class QuizFragment extends Fragment implements View.OnClickListener, Comp
         viewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
             Log.d(TAG, "Loading state changed: " + isLoading);
             // ローディングインジケーターの表示/非表示
-            binding.progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+            // binding.progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE); // progressBar IDがないためコメントアウト
             // ローディング中は操作不可にするなど
-            binding.quizContentGroup.setVisibility(isLoading ? View.GONE : View.VISIBLE);
+            // binding.quizContentGroup.setVisibility(isLoading ? View.GONE : View.VISIBLE); // quizContentGroup IDがないためコメントアウト
         });
-
-        // クイズ終了通知の監視は不要になったため削除
-        // viewModel.getQuizFinished().observe(getViewLifecycleOwner(), finished -> {
-        //     if (finished != null && finished) {
-        //         Log.d(TAG, "Quiz finished observed");
-        //         // showResult(); // ダイアログは表示しない
-        //         // 代わりに最後の問題で「次へ」を押したときに前の画面に戻るなどの処理が必要か検討
-        //         // 現状は「次へ」ボタンのonClick内で処理
-        //     }
-        // });
     }
 
     // 回答コントロール（ButtonとCheckBox）のリストを初期化
@@ -165,19 +162,21 @@ public class QuizFragment extends Fragment implements View.OnClickListener, Comp
         binding.submitAnswerButton.setOnClickListener(this);
         binding.nextButton.setOnClickListener(this);
         binding.backButton.setOnClickListener(this);
+        bookmarkButton.setOnClickListener(this); // Set listener for bookmark button
     }
 
     private void updateQuizUI(QuizEntity quiz) {
         Log.d(TAG, "Updating UI for quiz: " + quiz.getQid());
-        rightAnswers = quiz.getAnswer();
-        isMultipleChoice = rightAnswers != null && rightAnswers.size() > 1;
-        Log.d(TAG, "Is multiple choice: " + isMultipleChoice + " (Answer count: " + (rightAnswers != null ? rightAnswers.size() : "null") + ")");
 
-        // UI要素をリセット
+        // ★修正: 解説と次へボタンは常に非表示にし、回答コントロールは有効にする
         binding.explanationCard.setVisibility(View.GONE);
         binding.nextButton.setVisibility(View.GONE);
         resetAnswerControlStyles(); // ボタンとチェックボックスのスタイルをリセット
         setAnswerControlsEnabled(true); // 回答コントロールを有効化
+
+        rightAnswers = quiz.getAnswer();
+        isMultipleChoice = rightAnswers != null && rightAnswers.size() > 1;
+        Log.d(TAG, "Is multiple choice: " + isMultipleChoice + " (Answer count: " + (rightAnswers != null ? rightAnswers.size() : "null") + ")");
 
         // qid表示
         binding.countLabel.setText(quiz.getQid());
@@ -205,8 +204,9 @@ public class QuizFragment extends Fragment implements View.OnClickListener, Comp
             // 複数回答
             binding.answerButtonsLayout.setVisibility(View.GONE);
             binding.answerChoicesLayout.setVisibility(View.VISIBLE);
+            // ★修正: submitボタンは回答前なので常に表示
             binding.submitAnswerButton.setVisibility(View.VISIBLE);
-            binding.submitAnswerButton.setEnabled(false); // 初期状態は無効
+            binding.submitAnswerButton.setEnabled(false); // 初期状態は無効 (チェックボックス選択時に有効化)
 
             for (int i = 0; i < answerCheckBoxes.size(); i++) {
                 CheckBox checkBox = answerCheckBoxes.get(i);
@@ -402,10 +402,20 @@ public class QuizFragment extends Fragment implements View.OnClickListener, Comp
             binding.submitAnswerButton.setVisibility(View.GONE);
             binding.nextButton.setVisibility(View.VISIBLE);
 
+        } else if (id == R.id.bookmarkButton) {
+            // ブックマークボタンのクリック処理
+            Log.d(TAG, "Bookmark button clicked");
+            QuizEntity currentQuizForBookmark = viewModel.getCurrentQuiz().getValue();
+            if (currentQuizForBookmark != null) {
+                viewModel.toggleBookmarkStatus(currentQuizForBookmark); // ViewModelのメソッドを呼び出す
+                // アイコンの更新はObserverで行われる
+            } else {
+                Log.w(TAG, "Cannot toggle bookmark, current quiz is null");
+            }
         } else if (!isMultipleChoice && (id == R.id.answerBtn1 || id == R.id.answerBtn2 || id == R.id.answerBtn3 || id == R.id.answerBtn4)) {
             // 単一回答の回答ボタン
             Button answerBtn = (Button) view;
-            int selectedIndex = answerButtons.indexOf(answerBtn); // リストからインデックス取得
+            int selectedIndex = answerButtons.indexOf(answerBtn);
             Log.d(TAG, "Answer button clicked (Single Choice): index " + selectedIndex);
 
             if (selectedIndex == -1) {
@@ -426,6 +436,43 @@ public class QuizFragment extends Fragment implements View.OnClickListener, Comp
             showExplanation(isCorrect, explanation);
             setAnswerControlsEnabled(false);
             binding.nextButton.setVisibility(View.VISIBLE);
+         }
+     }
+
+    // ブックマークアイコンの状態を更新するメソッド
+    private void updateBookmarkIcon(boolean isBookmarked) {
+        Log.d(TAG, "updateBookmarkIcon called with isBookmarked: " + isBookmarked); // Add log
+        if (bookmarkButton != null) {
+            if (isBookmarked) {
+                Log.d(TAG, "Setting filled bookmark icon"); // Add log
+                // ブックマークされている場合は塗りつぶしアイコンを設定し、色を付ける
+                bookmarkButton.setImageResource(R.drawable.ic_bookmark_filled);
+                bookmarkButton.setColorFilter(ContextCompat.getColor(requireContext(), R.color.accent_color)); // Set tint when bookmarked
+                bookmarkButton.invalidate(); // Force redraw
+            } else {
+                Log.d(TAG, "Setting outline bookmark icon (default color)"); // Add log
+                // ブックマークされていない場合はデフォルト色の枠線アイコンを設定し、デフォルトの色を明示的に設定
+                bookmarkButton.setImageResource(R.drawable.ic_bookmark_default_color); // Use the new default color icon
+                int defaultColor = getThemeColor(android.R.attr.colorControlNormal); // Get default icon color from theme
+                bookmarkButton.setColorFilter(defaultColor); // Explicitly set default color
+                bookmarkButton.invalidate(); // Force redraw
+            }
+        } else {
+            Log.w(TAG, "bookmarkButton is null in updateBookmarkIcon"); // Add log for null case
+        }
+    }
+
+    // Helper method to get color from theme attribute
+    @ColorInt
+    private int getThemeColor(@NonNull final int attributeColor) {
+        final TypedValue value = new TypedValue();
+        boolean resolved = requireContext().getTheme().resolveAttribute(attributeColor, value, true);
+        if (resolved) {
+            return value.data;
+        } else {
+            // Fallback color if attribute is not found (e.g., black)
+            Log.w(TAG, "Theme attribute not found: " + attributeColor + ", using fallback black color.");
+            return ContextCompat.getColor(requireContext(), android.R.color.black);
         }
     }
 
@@ -444,9 +491,12 @@ public class QuizFragment extends Fragment implements View.OnClickListener, Comp
         spannableResult.setSpan(new ForegroundColorSpan(resultColor), 0, resultText.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 
         String originalExplanation = (explanation != null && !explanation.isEmpty()) ? explanation : "解説はありません。";
-        binding.explanationTextView.setText(spannableResult);
+
+        // ★修正: コメントアウト解除し、正しいID (explanationTextView) を使用
+        binding.explanationTextView.setText(spannableResult); // 正誤結果
         binding.explanationTextView.append("\n\n");
-        binding.explanationTextView.append(originalExplanation);
+        binding.explanationTextView.append(originalExplanation); // 解説本文
+
         binding.explanationCard.setVisibility(View.VISIBLE);
     }
 
