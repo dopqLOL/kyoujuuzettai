@@ -19,6 +19,12 @@
         <action
             android:id="@+id/action_homeFragment_to_problemListFragment"
             app:destination="@id/problemListFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_navigation_history"
+            app:destination="@id/navigation_history" />
+        <action
+            android:id="@+id/action_homeFragment_to_navigation_bookmark"
+            app:destination="@id/navigation_bookmark" />
     </fragment>
 
     <fragment

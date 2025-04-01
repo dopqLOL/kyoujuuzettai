@@ -67,14 +67,38 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("MainActivity", "Showing Toolbar and Bottom Navigation for " + destLabel);
                 binding.appBarLayout.setVisibility(View.VISIBLE);
                 binding.bottomNavigation.setVisibility(View.VISIBLE);
+
+                // Update BottomNavigationView selected item based on destination
+                // Check if the destination ID matches one of the menu item IDs
+                if (destId == R.id.homeFragment ||
+                    destId == R.id.chapterFragment || // Assuming chapter is a main tab now based on menu
+                    destId == R.id.navigation_history ||
+                    destId == R.id.navigation_bookmark) {
+                     // Check if the menu item exists before trying to select it
+                     if (binding.bottomNavigation.getMenu().findItem(destId) != null) {
+                         Log.d("MainActivity", "Updating BottomNav selection to: " + destLabel + " (" + destId + ")");
+                         // Use setChecked to avoid re-triggering the listener
+                         binding.bottomNavigation.getMenu().findItem(destId).setChecked(true);
+                     } else {
+                         Log.w("MainActivity", "Destination ID " + destId + " not found in BottomNav menu.");
+                     }
+                } else {
+                     Log.d("MainActivity", "Destination " + destLabel + " not in BottomNav menu, selection unchanged.");
+                }
             }
         });
 
-        NavigationUI.setupWithNavController(binding.bottomNavigation, navController); // Use standard setup
-        Log.d("MainActivity", "Standard Bottom Navigation setup complete."); // Log setup
+        // NavigationUI.setupWithNavController(binding.bottomNavigation, navController); // Use standard setup - Replaced by manual listener below
+        // Log.d("MainActivity", "Standard Bottom Navigation setup complete."); // Log setup
 
-        // Manual setup for BottomNavigationView item selection is removed as NavigationUI handles it now.
-        /*
+        // Add listener to prevent navigation when the same item is reselected
+        // binding.bottomNavigation.setOnNavigationItemReselectedListener(item -> {
+            // アイテムが再選択された場合は、何もしない (ナビゲーションを防ぐ)
+        //    Log.d("MainActivity", "Item reselected: " + item.getTitle() + ", doing nothing.");
+            // イベントを消費したことを示す必要はない (何もしないので)
+        // });
+
+        // Manual setup for BottomNavigationView item selection
         binding.bottomNavigation.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
             NavDestination currentDestination = navController.getCurrentDestination();
@@ -95,7 +119,14 @@ public class MainActivity extends AppCompatActivity {
             int startDestinationId = R.id.homeFragment;
 
             // Pop up to the start destination of the graph to avoid building up back stack.
-            navOptionsBuilder.setPopUpTo(startDestinationId, false); // Pop up to home, but don't pop home itself
+            // For top-level destinations, pop up to the start destination.
+            // Check if the target destination is one of the main bottom nav items
+             if (itemId == R.id.homeFragment || itemId == R.id.navigation_history || itemId == R.id.navigation_bookmark || itemId == R.id.settingsFragment || itemId == R.id.chapterFragment) { // Include chapterFragment if it's a main tab
+                 navOptionsBuilder.setPopUpTo(startDestinationId, false); // Pop up to home, but don't pop home itself
+             }
+             // For other destinations, default behavior (or specific logic if needed) might apply,
+             // but the standard setup usually handles this. Here we focus on bottom nav items.
+
 
             // Handle navigation for each item
             try {
@@ -106,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
                  return false; // Indicate navigation failed or wasn't handled
             }
         });
-        */
+
 
         String apiKey = BuildConfig.CONTENTFUL_ACCESS_TOKEN;
         String spaceId = BuildConfig.CONTENTFUL_SPACE_ID;
