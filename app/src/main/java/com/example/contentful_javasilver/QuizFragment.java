@@ -471,12 +471,12 @@ public class QuizFragment extends Fragment implements View.OnClickListener, Comp
                 bookmarkItem.setIcon(R.drawable.ic_bookmark_filled); // Filled icon
                 bookmarkItem.getIcon().setTint(ContextCompat.getColor(requireContext(), R.color.accent_color)); // Tint when bookmarked
             } else {
-                bookmarkItem.setIcon(R.drawable.ic_bookmark_default_color); // Outline icon
-                // Reset tint to default (or remove tint)
-                 int defaultColor = getThemeColor(android.R.attr.colorControlNormal);
-                 bookmarkItem.getIcon().setTint(defaultColor);
-            }
-        } else {
+                 bookmarkItem.setIcon(R.drawable.ic_bookmark_default_color); // Outline icon
+                 // Reset tint to default (or remove tint)
+                  int accentColor = ContextCompat.getColor(requireContext(), R.color.accent_color); // Get accent color
+                  bookmarkItem.getIcon().setTint(accentColor); // Explicitly set tint for default icon to accent color
+             }
+         } else {
              Log.w(TAG, "Bookmark menu item not found in onPrepareOptionsMenu");
         }
     }
