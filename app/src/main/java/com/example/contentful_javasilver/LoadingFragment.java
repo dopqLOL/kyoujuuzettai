@@ -3,12 +3,13 @@ package com.example.contentful_javasilver;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock; // Import SystemClock
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ProgressBar;
-import android.widget.TextView;
+// Removed ProgressBar import
+// Removed TextView import
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -36,9 +37,11 @@ import kotlin.Unit;
 public class LoadingFragment extends Fragment {
 
     private static final String TAG = "LoadingFragment";
-    private ProgressBar progressBar;
-    private TextView statusText;
+    private static final long MIN_DISPLAY_TIME_MS = 3000; // 3 seconds minimum display time
+    // Removed progressBar and statusText fields
     private final Handler handler = new Handler(Looper.getMainLooper()); // Handler for UI updates
+    private long startTimeMs; // To track start time
+    private boolean dataLoadComplete = false; // Flag to track data loading status
 
     private AsyncHelperCoroutines asyncHelper; // Keep this for Contentful fetching
     private QuizDatabase database;
@@ -54,8 +57,8 @@ public class LoadingFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        progressBar = view.findViewById(R.id.loadingProgressBar);
-        statusText = view.findViewById(R.id.loadingStatusText);
+        startTimeMs = SystemClock.elapsedRealtime(); // Record start time
+        // Removed progressBar and statusText initialization
 
         // Initialize Database and Executor
         database = QuizDatabase.getDatabase(requireContext());
@@ -74,25 +77,24 @@ public class LoadingFragment extends Fragment {
     }
 
     private void checkDatabaseAndLoadData() {
-        updateStatus(getString(R.string.loading_status_checking)); // "データを確認中..."
-        progressBar.setIndeterminate(true); // 確認中は不定プログレス
+        // Removed status update and progress bar setting
 
         databaseExecutor.execute(() -> {
             try {
                 int quizCount = database.quizDao().getQuizCountSync();
                 handler.post(() -> { // UIスレッドで処理
                     if (isAdded()) { // FragmentがまだActivityにアタッチされているか確認
-                        progressBar.setIndeterminate(false); // プログレスを確定に戻す
+                        // Removed progress bar setting
                         if (quizCount > 0) {
                             // データが存在する場合
                             Log.d(TAG, "データベースに既存データあり (" + quizCount + "件)。ダウンロードをスキップします。");
-                            updateProgressAndStatus(100, getString(R.string.loading_status_loading)); // "データを読み込み中..."
-                            // 少し待ってからホームへ遷移 (ユーザーがメッセージを読めるように)
-                            handler.postDelayed(this::navigateToHome, 1000);
+                            // Removed status update
+                            dataLoadComplete = true; // Mark data load as complete
+                            tryNavigateToHome(); // Attempt navigation
                         } else {
                             // データが存在しない場合
                             Log.d(TAG, "データベースにデータなし。Contentfulからダウンロードを開始します。");
-                            updateProgressAndStatus(10, getString(R.string.loading_status_downloading)); // "最新データをダウンロード中..."
+                            // Removed status update
                             downloadAllData();
                         }
                     }
@@ -101,15 +103,17 @@ public class LoadingFragment extends Fragment {
                 Log.e(TAG, "データベースのカウント取得に失敗", e);
                 handler.post(() -> {
                     if (isAdded()) {
-                        updateProgressAndStatus(0, getString(R.string.loading_status_error_saving)); // DBエラー表示
+                        // Removed status update
                         showError("データベース確認エラー: " + e.getMessage());
+                        // Consider how to handle errors - maybe navigate after delay?
+                        // For now, we won't navigate on error.
                     }
                 });
             }
         });
     }
 
-    // checkForUpdatesメソッドは不要になったため削除可能ですが、一旦コメントアウトします
+    // checkForUpdates method is removed as it was commented out
     /*
     private void checkForUpdates() {
         // ... (code removed for brevity)
@@ -121,15 +125,13 @@ public class LoadingFragment extends Fragment {
         asyncHelper.fetchAllEntriesAsync(
                 "javaSilverQ",
                 (progress, status) -> {
-                    // This callback likely runs on the main thread if asyncHelper is designed well
-                    updateProgressAndStatus(progress, status);
+                    // Progress updates are no longer displayed
+                    // updateProgressAndStatus(progress, status);
                     return Unit.INSTANCE;
                 },
                 entries -> {
                     Log.d(TAG, entries.size() + "件のデータをダウンロードしました");
-                    // Use new string resource for saving status
-                    String savingStatus = getString(R.string.loading_status_saving) + " " + entries.size() + "件";
-                    updateProgressAndStatus(70, savingStatus);
+                    // Removed status update
 
                     List<QuizEntity> entities = convertToQuizEntities(entries);
                     saveToDatabase(entities); // Call the refactored save method
@@ -138,9 +140,10 @@ public class LoadingFragment extends Fragment {
                 },
                 error -> {
                     Log.e(TAG, "データのダウンロードに失敗しました: " + error);
-                    // Use new string resource for download error
-                    updateProgressAndStatus(0, getString(R.string.loading_status_error_download));
+                    // Removed status update
                     showError(error);
+                    // Consider how to handle errors - maybe navigate after delay?
+                    // For now, we won't navigate on error.
                     return Unit.INSTANCE;
                 }
         );
@@ -204,8 +207,7 @@ public class LoadingFragment extends Fragment {
             // Post UI update to main thread
             handler.post(() -> {
                  if (isAdded()) {
-                    // Use new string resource for no data error
-                    updateProgressAndStatus(0, getString(R.string.loading_status_error_no_data));
+                    // Removed call to updateProgressAndStatus as it no longer exists
                     showError("変換されたデータがありません"); // Keep specific error message
                  }
             });
@@ -225,11 +227,10 @@ public class LoadingFragment extends Fragment {
                 // Post success UI update back to the main thread
                 handler.post(() -> {
                     if (isAdded()) {
-                        // Use new string resource for completion status
-                        String completeStatus = getString(R.string.loading_status_complete) + " " + entities.size() + "件のクイズを保存しました";
-                        updateProgressAndStatus(100, completeStatus);
-                        // Use the same handler for delayed navigation
-                        handler.postDelayed(this::navigateToHome, 1500);
+                        // Removed status update
+                        Log.d(TAG, entities.size() + "件のクイズを保存しました");
+                        dataLoadComplete = true; // Mark data load as complete
+                        tryNavigateToHome(); // Attempt navigation
                     }
                 });
 
@@ -238,31 +239,17 @@ public class LoadingFragment extends Fragment {
                 // Post error UI update back to the main thread
                 handler.post(() -> {
                     if (isAdded()) {
-                        // Use new string resource for saving error
-                        updateProgressAndStatus(0, getString(R.string.loading_status_error_saving));
+                        // Removed status update
                         showError("データベースエラー: " + dbException.getMessage()); // Keep specific error message
+                        // Consider how to handle errors - maybe navigate after delay?
+                        // For now, we won't navigate on error.
                     }
                 });
             }
         });
     }
 
-    private void updateProgressAndStatus(int progress, String status) {
-        if (isAdded()) {
-            // Ensure progress bar is not indeterminate when setting progress
-            if (progressBar.isIndeterminate()) {
-                progressBar.setIndeterminate(false);
-            }
-            progressBar.setProgress(progress, true); // Animate progress change
-            updateStatus(status);
-        }
-    }
-
-    private void updateStatus(String status) {
-        if (statusText != null) {
-            statusText.setText(status);
-        }
-    }
+    // Removed updateProgressAndStatus and updateStatus methods
 
     private void showError(String message) {
         if (isAdded()) {
@@ -270,12 +257,39 @@ public class LoadingFragment extends Fragment {
         }
     }
 
-    private void navigateToHome() {
+    private synchronized void tryNavigateToHome() {
+        if (!isAdded() || !dataLoadComplete) {
+            return; // Don't navigate if fragment detached or data not ready
+        }
+
+        long elapsedTimeMs = SystemClock.elapsedRealtime() - startTimeMs;
+        long remainingTimeMs = MIN_DISPLAY_TIME_MS - elapsedTimeMs;
+
+        if (remainingTimeMs <= 0) {
+            // Minimum time has passed, navigate now
+            navigateToHomeInternal();
+        } else {
+            // Minimum time hasn't passed, schedule navigation
+            handler.postDelayed(this::navigateToHomeInternal, remainingTimeMs);
+        }
+    }
+
+    private void navigateToHomeInternal() {
+        // Ensure navigation happens only once and on the main thread
+        handler.removeCallbacks(this::navigateToHomeInternal); // Remove any pending calls
         if (isAdded()) {
             try {
-                Navigation.findNavController(requireView()).navigate(R.id.action_loading_to_home);
-            } catch (Exception e) {
-                Log.e(TAG, "ホーム画面への遷移に失敗しました", e);
+                // Check if already navigated (to prevent crashes on rapid calls)
+                if (Navigation.findNavController(requireView()).getCurrentDestination() != null &&
+                    Navigation.findNavController(requireView()).getCurrentDestination().getId() == R.id.loadingFragment) {
+                    Navigation.findNavController(requireView()).navigate(R.id.action_loading_to_home);
+                }
+            } catch (IllegalStateException | IllegalArgumentException e) {
+                // IllegalStateException: Fragment not associated with a NavController
+                // IllegalArgumentException: Navigation action/destination not found or already navigating
+                Log.e(TAG, "ホーム画面への遷移に失敗しました (すでに遷移中または無効な状態)", e);
+            } catch (Exception e) { // Catch other potential exceptions
+                 Log.e(TAG, "ホーム画面への遷移中に予期せぬエラーが発生しました", e);
             }
         }
     }

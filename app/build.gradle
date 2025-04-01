@@ -101,4 +101,8 @@ dependencies {
     def coroutines_version = "1.7.3" // Use the latest stable version
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version"
+
+    // Lottie for Android
+    def lottieVersion = "6.4.1" // Use a recent stable version
+    implementation "com.airbnb.android:lottie:$lottieVersion"
 }

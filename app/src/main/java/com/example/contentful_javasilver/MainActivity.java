@@ -13,10 +13,12 @@ import androidx.navigation.NavOptions;
 import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
+// import androidx.navigation.ui.NavigationUI; // Remove this import as we handle title manually
+import androidx.navigation.ui.NavigationUI; // Keep for setupActionBarWithNavController initially, but disable title setting
 
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.appbar.MaterialToolbar;
+import android.widget.TextView; // Import TextView
 import com.example.contentful_javasilver.data.QuizDao;
 import com.example.contentful_javasilver.data.QuizDatabase;
 import com.example.contentful_javasilver.data.QuizEntity;
@@ -48,7 +50,13 @@ public class MainActivity extends AppCompatActivity {
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.homeFragment // Only Home is top-level now
         ).build();
+        // Setup with NavController but we will handle the title manually
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
+        // Disable default title setting by NavigationUI
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayShowTitleEnabled(false);
+        }
+
 
         navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
             int destId = destination.getId();
@@ -59,16 +67,48 @@ public class MainActivity extends AppCompatActivity {
 
             Log.d("MainActivity", "Navigating from: " + currentLabel + " (" + currentId + ") to: " + destLabel + " (" + destId + ")");
 
+            TextView customTitle = binding.toolbarTitleCustom; // Get custom title TextView
+
             if (destId == R.id.startFragment || destId == R.id.loadingFragment) {
                 Log.d("MainActivity", "Hiding Toolbar and Bottom Navigation for " + destLabel);
                 binding.appBarLayout.setVisibility(View.GONE);
                 binding.bottomNavigation.setVisibility(View.GONE);
+                customTitle.setVisibility(View.GONE); // Hide custom title as well
             } else {
                 Log.d("MainActivity", "Showing Toolbar and Bottom Navigation for " + destLabel);
                 binding.appBarLayout.setVisibility(View.VISIBLE);
                 binding.bottomNavigation.setVisibility(View.VISIBLE);
+                customTitle.setVisibility(View.VISIBLE); // Show custom title
 
-                // Update BottomNavigationView selected item based on destination
+                // Set the text of the custom title TextView
+                if (destination.getLabel() != null) {
+                    customTitle.setText(destination.getLabel());
+                    Log.d("MainActivity", "Setting custom title to: " + destination.getLabel());
+                } else {
+                    customTitle.setText(""); // Clear title if no label
+                    Log.d("MainActivity", "Setting empty custom title");
+                 }
+
+                 // Adjust start margin for the custom title TextView
+                 // We want the home title to start where titles on other pages start (after the back arrow)
+                 // Standard title start is often around 72dp when nav icon is present.
+                 // The default margin in XML is 16dp.
+                 android.view.ViewGroup.MarginLayoutParams layoutParams = (android.view.ViewGroup.MarginLayoutParams) customTitle.getLayoutParams();
+                 if (destId == R.id.homeFragment) {
+                     // Set margin to ~72dp for home fragment to align with title position when back arrow is present
+                     int marginStartPixels = (int) (72 * getResources().getDisplayMetrics().density);
+                     layoutParams.leftMargin = marginStartPixels;
+                     Log.d("MainActivity", "Setting custom title start margin to 72dp for HomeFragment");
+                 } else {
+                     // Reset margin to the default 16dp for other fragments (as defined in XML)
+                     int marginStartPixels = (int) (16 * getResources().getDisplayMetrics().density);
+                     layoutParams.leftMargin = marginStartPixels;
+                     Log.d("MainActivity", "Resetting custom title start margin to 16dp for " + destLabel);
+                 }
+                 customTitle.setLayoutParams(layoutParams); // Apply layout parameter changes
+
+
+                 // Update BottomNavigationView selected item based on destination
                 // Check if the destination ID matches one of the menu item IDs
                 if (destId == R.id.homeFragment ||
                     destId == R.id.chapterFragment || // Assuming chapter is a main tab now based on menu
