@@ -89,6 +89,16 @@ public class MainActivity extends AppCompatActivity {
                     Log.d("MainActivity", "Setting empty custom title");
                  }
 
+                 // Show/Hide Bottom Navigation based on destination
+                 if (destId == R.id.quizFragment || destId == R.id.privacyPolicyFragment) { // Add privacyPolicyFragment here
+                     Log.d("MainActivity", "Hiding Bottom Navigation for " + destLabel);
+                     binding.bottomNavigation.setVisibility(View.GONE);
+                 } else {
+                     Log.d("MainActivity", "Showing Bottom Navigation for " + destLabel);
+                     binding.bottomNavigation.setVisibility(View.VISIBLE);
+                 }
+
+
                  // Adjust start margin for the custom title TextView
                  // We want the home title to start where titles on other pages start (after the back arrow)
                  // Standard title start is often around 72dp when nav icon is present.

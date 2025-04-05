@@ -21,18 +21,36 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintVertical_bias="0.3">
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/button_statistics"
+            style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="16dp"
+            android:padding="16dp"
             android:text="学習統計"
-            android:layout_marginBottom="16dp"/>
+            android:textAlignment="textStart"
+            android:textSize="20sp"
+            app:icon="@drawable/ic_bar_chart"
+            app:iconGravity="textStart"
+            app:iconPadding="16dp"
+            app:iconSize="24dp" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/button_learning_log"
+            style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="学習ログ"/>
+            android:layout_marginHorizontal="16dp"
+            android:padding="16dp"
+            android:text="学習ログ"
+            android:textAlignment="textStart"
+            android:textSize="20sp"
+            app:icon="@drawable/ic_history"
+            app:iconGravity="textStart"
+            app:iconPadding="16dp"
+            app:iconSize="24dp" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

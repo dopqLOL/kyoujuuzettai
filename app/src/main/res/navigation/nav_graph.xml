@@ -83,7 +83,12 @@
     <fragment
         android:id="@+id/settingsFragment"
         android:name="com.example.contentful_javasilver.SettingsFragment"
-        android:label="設定" />
+        android:label="@string/title_settings"
+        tools:layout="@layout/fragment_settings">
+        <action
+            android:id="@+id/action_settingsFragment_to_privacyPolicyFragment"
+            app:destination="@id/privacyPolicyFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/loadingFragment"
@@ -152,5 +157,11 @@
             android:id="@+id/action_bookmarkFragment_to_quizFragment"
             app:destination="@id/quizFragment" />
     </fragment>
+
+    <fragment
+        android:id="@+id/privacyPolicyFragment"
+        android:name="com.example.contentful_javasilver.PrivacyPolicyFragment"
+        android:label="@string/privacy_policy_title"
+        tools:layout="@layout/fragment_privacy_policy" />
 
 </navigation>

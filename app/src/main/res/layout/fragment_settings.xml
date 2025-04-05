@@ -5,24 +5,11 @@
     android:layout_height="match_parent"
     android:background="@color/background_color">
 
-    <TextView
-        android:id="@+id/settingsTitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/accent_color"
-        android:paddingHorizontal="16dp"
-        android:paddingVertical="16dp"
-        android:text="設定"
-        android:textColor="@android:color/white"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/settingsTitle">
+        app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -85,4 +72,4 @@
 
     </ScrollView>
 
-</androidx.constraintlayout.widget.ConstraintLayout> 
+</androidx.constraintlayout.widget.ConstraintLayout>
