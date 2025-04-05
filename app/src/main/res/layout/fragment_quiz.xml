@@ -64,6 +64,16 @@
                     android:padding="16dp">
 
                     <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/questionQid"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="?attr/colorPrimary"
+                        android:layout_marginBottom="8dp"
+                        tools:text="問題 1-1" />
+
+                    <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/questionLabel"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

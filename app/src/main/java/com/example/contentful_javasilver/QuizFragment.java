@@ -180,6 +180,9 @@ public class QuizFragment extends Fragment implements View.OnClickListener, Comp
     private void updateQuizUI(QuizEntity quiz) {
         Log.d(TAG, "Updating UI for quiz: " + quiz.getQid());
 
+        // QIDの表示 (新しく追加したTextView)
+        binding.questionQid.setText(getString(R.string.question_qid_format, quiz.getQid()));
+
         // ★修正: 解説と次へボタンは常に非表示にし、回答コントロールは有効にする
         binding.explanationCard.setVisibility(View.GONE);
         binding.nextButton.setVisibility(View.GONE);

@@ -60,4 +60,11 @@
         以上
         ]]>
     </string>
+
+    <string name="explanation_dialog_title">解説</string>
+    <string name="ok">OK</string>
+    <string name="question_qid_format">問題 %s</string>
+
+    <!-- Preference Titles -->
+    <string name="sync_header">Sync</string>
 </resources>
